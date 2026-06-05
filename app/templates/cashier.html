@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Cassa {{ menu_slug }} - MSG 3.0{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/css/cashier.css">{% endblock %}
+{% block content %}
+<section class="cashier" data-menu="{{ menu_slug }}">
+  <div>
+    <h1>Cassa: {{ menu_slug }}</h1>
+    <div id="product-grid" class="product-grid"></div>
+  </div>
+  <aside class="cart-panel">
+    <h2>Ordine</h2>
+    <div id="cart-lines" class="cart-lines"></div>
+    <div class="total-row">Totale: <strong id="cart-total">€ 0,00</strong></div>
+
+    <section class="change-box">
+      <h3>Resto</h3>
+      <div class="quick-paid" id="quick-paid"></div>
+      <label>Pagato
+        <input id="paid-input" inputmode="decimal" placeholder="es. 20">
+      </label>
+      <div>Resto: <strong id="change-output">€ 0,00</strong></div>
+    </section>
+
+    <button id="print-order" class="primary">Stampa ordine</button>
+    <button id="clear-order">Svuota</button>
+    <p id="status" class="status"></p>
+  </aside>
+</section>
+<script src="/static/js/cashier.js"></script>
+{% endblock %}

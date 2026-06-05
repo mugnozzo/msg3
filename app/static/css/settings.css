@@ -1,0 +1,76 @@
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.editor-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  position: sticky;
+  top: 4.5rem;
+}
+
+.editor-panel form,
+.editor-panel label {
+  display: grid;
+  gap: .35rem;
+}
+
+.editor-panel form {
+  gap: .8rem;
+}
+
+.editor-panel input,
+.editor-panel select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: .7rem;
+  padding: .6rem;
+  font: inherit;
+}
+
+.check-row {
+  display: flex !important;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.check-row input { width: auto; }
+
+.checks {
+  display: grid;
+  gap: .35rem;
+}
+
+.checks label {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+
+.checks input { width: auto; }
+
+.form-actions {
+  display: flex;
+  gap: .5rem;
+}
+
+.inactive-row {
+  opacity: .55;
+}
+
+@media (max-width: 950px) {
+  .settings-layout { grid-template-columns: 1fr; }
+  .editor-panel { position: static; }
+}

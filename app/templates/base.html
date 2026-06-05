@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MSG 3.0{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="topbar">
+    <a href="/cashier/main">Cassa principale</a>
+    <a href="/cashier/bar">Bar</a>
+    <a href="/orders">Ordini</a>
+    <a href="/printers/test">Test stampanti</a>
+    <a href="/settings/products">Prodotti</a>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

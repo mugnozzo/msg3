@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Ordini - MSG 3.0{% endblock %}
+{% block content %}
+<h1>Ordini recenti</h1>
+<table class="table" id="orders-table">
+  <thead>
+    <tr><th>#</th><th>Ora</th><th>Cassa</th><th>Totale</th><th>Azioni</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<script>
+const money = cents => `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
+async function loadOrders() {
+  const res = await fetch('/api/orders');
+  const orders = await res.json();
+  document.querySelector('#orders-table tbody').innerHTML = orders.map(o => `
+    <tr>
+      <td>${o.order_number}</td>
+      <td>${o.created_at}</td>
+      <td>${o.cashier_name ?? ''}</td>
+      <td>${money(o.total_cents)}</td>
+      <td><button data-id="${o.id}">Ristampa</button></td>
+    </tr>
+  `).join('');
+}
+document.addEventListener('click', async event => {
+  if (!event.target.matches('button[data-id]')) return;
+  const id = event.target.dataset.id;
+  event.target.disabled = true;
+  try {
+    const res = await fetch(`/api/orders/${id}/reprint`, {method: 'POST'});
+    if (!res.ok) throw new Error(await res.text());
+    event.target.textContent = 'Ristampato';
+  } catch (err) {
+    alert(err.message);
+    event.target.disabled = false;
+  }
+});
+loadOrders();
+</script>
+{% endblock %}

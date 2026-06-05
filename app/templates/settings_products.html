@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Prodotti - MSG 3.0{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/css/settings.css">{% endblock %}
+{% block content %}
+<section class="settings-products">
+  <div class="settings-header">
+    <h1>Prodotti</h1>
+    <button id="new-product" class="primary">Nuovo prodotto</button>
+  </div>
+
+  <div class="settings-layout">
+    <section>
+      <table class="table" id="products-table">
+        <thead>
+          <tr>
+            <th>Ordine</th>
+            <th>Icona</th>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th>Prezzo</th>
+            <th>Menu</th>
+            <th>Attivo</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <aside class="editor-panel">
+      <h2 id="editor-title">Nuovo prodotto</h2>
+      <form id="product-form">
+        <input type="hidden" id="product-id">
+
+        <label>Nome
+          <input id="product-name" required>
+        </label>
+
+        <label>Prezzo (€)
+          <input id="product-price" inputmode="decimal" required placeholder="es. 7,50">
+        </label>
+
+        <label>Categoria
+          <select id="product-category" required></select>
+        </label>
+
+        <label>Icona/testo breve
+          <input id="product-icon" placeholder="es. 🍲">
+        </label>
+
+        <label>Percorso immagine
+          <input id="product-image" placeholder="/static/img/products/zuppa.png">
+        </label>
+
+        <label>Ordine
+          <input id="product-sort" type="number" value="0">
+        </label>
+
+        <label class="check-row">
+          <input id="product-enabled" type="checkbox" checked>
+          Attivo
+        </label>
+
+        <fieldset>
+          <legend>Visibile nei menu</legend>
+          <div id="menu-checkboxes" class="checks"></div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit" class="primary">Salva</button>
+          <button type="button" id="reset-form">Annulla</button>
+        </div>
+        <p id="settings-status" class="status"></p>
+      </form>
+    </aside>
+  </div>
+</section>
+<script src="/static/js/settings-products.js"></script>
+{% endblock %}

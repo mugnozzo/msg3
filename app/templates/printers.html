@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Test stampanti - MSG 3.0{% endblock %}
+{% block content %}
+<h1>Test stampanti</h1>
+<table class="table">
+  <thead><tr><th>Nome</th><th>Tipo</th><th>Indirizzo</th><th></th></tr></thead>
+  <tbody>
+    {% for printer in printers %}
+    <tr>
+      <td>{{ printer.name }}</td>
+      <td>{{ printer.kind }}</td>
+      <td>{{ printer.address }}</td>
+      <td><button data-printer-id="{{ printer.id }}">Test</button></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<script>
+document.addEventListener('click', async event => {
+  if (!event.target.matches('button[data-printer-id]')) return;
+  const id = event.target.dataset.printerId;
+  event.target.disabled = true;
+  try {
+    const res = await fetch(`/api/printers/${id}/test`, {method: 'POST'});
+    if (!res.ok) throw new Error(await res.text());
+    event.target.textContent = 'OK';
+  } catch (err) {
+    alert(err.message);
+    event.target.disabled = false;
+  }
+});
+</script>
+{% endblock %}
