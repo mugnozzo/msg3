@@ -127,7 +127,7 @@ def test_printer(printer_id: int) -> dict:
         + escpos.line("Test stampante")
         + escpos.line(printer["name"])
         + escpos.line(f"Tipo: {printer['kind']}")
-        + escpos.feed(6)
+        + escpos.feed(3)
         + escpos.cut()
     )
     try:
