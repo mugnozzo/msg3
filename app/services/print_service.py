@@ -5,7 +5,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from app.db.database import get_connection
+from app.db.database import DEFAULT_FILE_PRINTER_PATH, get_connection
 from app.services import escpos
 
 _printer_locks: dict[int, threading.Lock] = {}
@@ -62,7 +62,12 @@ def send_to_printer(printer: dict[str, Any], data: bytes) -> None:
     kind = printer["kind"]
     address = printer["address"]
     if kind == "file":
-        path = Path(address)
+        path = Path(address) if address else DEFAULT_FILE_PRINTER_PATH
+        # Guard against old/bad config where the address is a directory, e.g. /mnt/data.
+        if path.exists() and path.is_dir():
+            path = path / "printer-output.bin"
+        elif path.suffix == "":
+            path = path / "printer-output.bin"
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("ab") as f:
             f.write(data)

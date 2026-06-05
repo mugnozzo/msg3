@@ -79,3 +79,19 @@ msg3/data/printer-output.bin
 ```
 
 So they no longer depend on the directory from which `uvicorn` is launched.
+
+## Printer management
+
+Open:
+
+```text
+/settings/printers
+```
+
+Supported printer kinds:
+
+- `file`: safe test output. Empty address uses `data/printer-output.bin`.
+- `usb`: raw ESC/POS bytes to a device path, for example `/dev/usb/lp0`.
+- `network`: raw ESC/POS bytes to `host:port`, usually `192.168.1.50:9100`.
+
+Use the test button before assigning a real printer to a cashier.

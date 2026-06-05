@@ -35,3 +35,8 @@ def printers_test_page(request: Request):
 @router.get("/settings/products")
 def settings_products_page(request: Request):
     return templates.TemplateResponse("settings_products.html", {"request": request})
+
+
+@router.get("/settings/printers")
+def settings_printers_page(request: Request):
+    return templates.TemplateResponse("settings_printers.html", {"request": request})

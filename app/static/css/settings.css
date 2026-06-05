@@ -74,3 +74,22 @@
   .settings-layout { grid-template-columns: 1fr; }
   .editor-panel { position: static; }
 }
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+
+.hint {
+  margin: -.4rem 0 .2rem;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+code {
+  background: color-mix(in srgb, var(--panel), black 4%);
+  border: 1px solid var(--border);
+  border-radius: .4rem;
+  padding: .12rem .28rem;
+}

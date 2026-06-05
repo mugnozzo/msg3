@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Stampanti - MSG 3.0{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/settings.css">
+{% endblock %}
+{% block content %}
+<section class="settings-header">
+  <div>
+    <h1>Stampanti</h1>
+    <p>Gestisci stampanti file, USB ed ethernet. Usa il test prima di assegnarle a una cassa.</p>
+  </div>
+  <button id="new-printer">Nuova stampante</button>
+</section>
+
+<section class="settings-layout">
+  <div>
+    <table class="table" id="printers-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Tipo</th>
+          <th>Indirizzo</th>
+          <th>Stato</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <aside class="editor-panel">
+    <h2 id="form-title">Nuova stampante</h2>
+    <form id="printer-form">
+      <input type="hidden" name="id">
+
+      <label>
+        Nome
+        <input name="name" required placeholder="Es. Stampante cassa 1">
+      </label>
+
+      <label>
+        Tipo
+        <select name="kind" required>
+          <option value="file">File di test</option>
+          <option value="usb">USB</option>
+          <option value="network">Ethernet / rete</option>
+        </select>
+      </label>
+
+      <label>
+        Indirizzo / path
+        <input name="address" placeholder="data/printer-output.bin">
+      </label>
+      <p class="hint" id="address-hint"></p>
+
+      <label class="check-row">
+        <input type="checkbox" name="enabled" checked>
+        Attiva
+      </label>
+
+      <div class="form-actions">
+        <button type="submit">Salva</button>
+        <button type="button" id="reset-form">Annulla</button>
+      </div>
+    </form>
+  </aside>
+</section>
+
+<script src="/static/js/settings-printers.js"></script>
+{% endblock %}

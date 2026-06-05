@@ -4,10 +4,11 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Iterable
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-DATA_DIR = BASE_DIR / "data"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DATA_DIR = PROJECT_ROOT / "data"
 DB_PATH = DATA_DIR / "msg.sqlite3"
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
+DEFAULT_FILE_PRINTER_PATH = DATA_DIR / "printer-output.bin"
 
 
 def get_connection() -> sqlite3.Connection:
@@ -71,7 +72,7 @@ def seed_if_empty(conn: sqlite3.Connection) -> None:
             )
 
     conn.execute("INSERT INTO cashiers(name) VALUES (?)", ("Cassa 1",))
-    conn.execute("INSERT INTO printers(name, kind, address) VALUES (?, ?, ?)", ("Test file printer", "file", str(DATA_DIR / "printer-output.bin")))
+    conn.execute("INSERT INTO printers(name, kind, address) VALUES (?, ?, ?)", ("Test file printer", "file", str(DEFAULT_FILE_PRINTER_PATH)))
     cashier_id = conn.execute("SELECT id FROM cashiers WHERE name = ?", ("Cassa 1",)).fetchone()[0]
     printer_id = conn.execute("SELECT id FROM printers WHERE name = ?", ("Test file printer",)).fetchone()[0]
     conn.execute(
