@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Casse - MSG 3.0{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/css/settings.css">{% endblock %}
+{% block content %}
+<section class="settings-layout">
+  <div>
+    <h1>Casse</h1>
+    <p class="page-subtitle">Ogni cassa ha un menu e una stampante assegnati. Usa poi l'indirizzo <code>/cashier/ID</code>.</p>
+    <table class="table" id="cashiers-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Menu</th>
+          <th>Stampante</th>
+          <th>Stato</th>
+          <th>Link</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <aside class="editor-panel">
+    <h2 id="form-title">Nuova cassa</h2>
+    <form id="cashier-form">
+      <input type="hidden" name="id">
+      <label>Nome
+        <input name="name" required placeholder="Cassa 1">
+      </label>
+      <label>Menu
+        <select name="menu_id" required></select>
+      </label>
+      <label>Stampante
+        <select name="printer_id" required></select>
+      </label>
+      <label class="check-row">
+        <input type="checkbox" name="enabled" checked>
+        Attiva
+      </label>
+      <button class="primary" type="submit">Salva</button>
+      <button type="button" id="reset-form">Annulla</button>
+    </form>
+    <button id="new-cashier">Nuova cassa</button>
+  </aside>
+</section>
+<script src="/static/js/settings-cashiers.js"></script>
+{% endblock %}

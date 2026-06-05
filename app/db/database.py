@@ -71,7 +71,7 @@ def seed_if_empty(conn: sqlite3.Connection) -> None:
                 (menu_ids["bar"], row["id"], idx * 10),
             )
 
-    conn.execute("INSERT INTO cashiers(name) VALUES (?)", ("Cassa 1",))
+    conn.execute("INSERT INTO cashiers(name, enabled) VALUES (?, ?)", ("Cassa 1", 1))
     conn.execute("INSERT INTO printers(name, kind, address) VALUES (?, ?, ?)", ("Test file printer", "file", str(DEFAULT_FILE_PRINTER_PATH)))
     cashier_id = conn.execute("SELECT id FROM cashiers WHERE name = ?", ("Cassa 1",)).fetchone()[0]
     printer_id = conn.execute("SELECT id FROM printers WHERE name = ?", ("Test file printer",)).fetchone()[0]

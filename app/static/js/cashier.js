@@ -1,4 +1,6 @@
-const menu = document.querySelector('.cashier').dataset.menu;
+const cashierRoot = document.querySelector('.cashier');
+const menu = cashierRoot.dataset.menu;
+const cashierId = Number(cashierRoot.dataset.cashierId || 1);
 const cart = new Map();
 let products = [];
 
@@ -83,7 +85,7 @@ async function printOrder() {
   status.textContent = 'Stampa in corso...';
   const payload = {
     menu,
-    cashier_id: 1,
+    cashier_id: cashierId,
     print_now: true,
     items: [...cart.values()].map(item => ({product_id: item.product.id, quantity: item.quantity}))
   };

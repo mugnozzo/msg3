@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Cassa {{ menu_slug }} - MSG 3.0{% endblock %}
+{% block title %}{{ cashier_name }} - MSG 3.0{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/css/cashier.css">{% endblock %}
 {% block content %}
-<section class="cashier" data-menu="{{ menu_slug }}">
+<section class="cashier" data-menu="{{ menu_slug }}" data-cashier-id="{{ cashier_id }}">
   <div>
-    <h1>Cassa: {{ menu_slug }}</h1>
+    <h1>{{ cashier_name }}</h1>
+    <p class="page-subtitle">Menu: <strong>{{ menu_name }}</strong> · Stampante: <strong>{{ printer_name }}</strong></p>
     <div id="product-grid" class="product-grid"></div>
   </div>
   <aside class="cart-panel">

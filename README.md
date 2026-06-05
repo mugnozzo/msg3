@@ -21,11 +21,14 @@ pip install -r requirements.txt
 
 Open:
 
+- `http://localhost:8000/cashier/1`
 - `http://localhost:8000/cashier/main`
 - `http://localhost:8000/cashier/bar`
 - `http://localhost:8000/orders`
 - `http://localhost:8000/printers/test`
 - `http://localhost:8000/settings/products`
+- `http://localhost:8000/settings/printers`
+- `http://localhost:8000/settings/cashiers`
 
 ## Printer safety
 
@@ -60,6 +63,10 @@ Implemented:
 - printer locking per backend process
 - reprint endpoint/page
 - test printer page
+- printer management panel
+- cashier management panel
+- cashier-specific URLs like `/cashier/1`
+- cashier menu/printer assignment
 
 Not implemented yet:
 
@@ -95,3 +102,35 @@ Supported printer kinds:
 - `network`: raw ESC/POS bytes to `host:port`, usually `192.168.1.50:9100`.
 
 Use the test button before assigning a real printer to a cashier.
+
+
+## Cashier management
+
+Open:
+
+```text
+/settings/cashiers
+```
+
+Each cashier has:
+
+- name
+- assigned menu
+- assigned printer
+- enabled/disabled state
+
+The normal cashier URLs are now:
+
+```text
+/cashier/1
+/cashier/2
+```
+
+The old development URLs still work:
+
+```text
+/cashier/main
+/cashier/bar
+```
+
+but real cash desks should use the cashier ID URLs.

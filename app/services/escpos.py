@@ -26,7 +26,7 @@ def cut() -> bytes:
 
 
 def feed(lines: int = 1) -> bytes:
-    return b"\n" * lines
+    return b"\x1b\x64" + bytes([lines])
 
 
 def text(value: str) -> bytes:
