@@ -20,17 +20,18 @@ def _get_lock(printer_id: int) -> threading.Lock:
 
 
 def format_money(cents: int) -> str:
-    return f"€ {cents / 100:.2f}".replace(".", ",")
+    #return f"€ {cents / 100:.2f}".replace(".", ",")
+    return f"{cents / 100:.2f}".replace(",", ".")
 
-
-def build_receipt_copy(order: dict[str, Any], items: list[dict[str, Any]], copy_label: str) -> bytes:
-    width = 32
+def build_receipt_waiter(order: dict[str, Any], items: list[dict[str, Any]], copy_label: str) -> bytes:
+    width = 48
+    right = 8
+    width_lg = 24
     out = bytearray()
     out += escpos.init()
     out += escpos.align("center")
     out += escpos.bold(True) + escpos.double_size(True)
-    out += escpos.line("MSG 3.0")
-    out += escpos.double_size(False) + escpos.bold(False)
+    out += escpos.line("SAGRA DELL'OLIVA DOLCE")
     out += escpos.line(copy_label)
     out += escpos.line(f"Ordine #{order['order_number']}")
     out += escpos.line(order["created_at"])
@@ -41,12 +42,41 @@ def build_receipt_copy(order: dict[str, Any], items: list[dict[str, Any]], copy_
         name = item["name_snapshot"][:18]
         total = format_money(item["line_total_cents"])
         left = f"{qty}x {name}"
-        out += escpos.line(f"{left:<22}{total:>10}")
+        out += escpos.line(f"{left:<{width_lg-right}}{total:>{right}}")
+    out += escpos.separator(width_lg)
+    out += escpos.line(f"{'TOTALE':<{width_lg-right}}{format_money(order['total_cents']):>{right}}")
+    out += escpos.double_size(False) + escpos.bold(False)
+    out += escpos.feed(6)
+    out += escpos.cut()
+    return bytes(out)
+
+
+def build_receipt_client(order: dict[str, Any], items: list[dict[str, Any]], copy_label: str) -> bytes:
+    width = 48
+    right = 8
+    width_lg = 24
+    out = bytearray()
+    out += escpos.init()
+    out += escpos.align("center")
+    out += escpos.bold(True) + escpos.double_size(True)
+    out += escpos.line("SAGRA DELL'OLIVA DOLCE")
+    out += escpos.line(copy_label)
+    out += escpos.double_size(False) + escpos.bold(False)
+    out += escpos.line(f"Ordine #{order['order_number']}")
+    out += escpos.line(order["created_at"])
+    out += escpos.separator(width)
+    out += escpos.align("left")
+    for item in items:
+        qty = item["quantity"]
+        name = item["name_snapshot"][:18]
+        total = format_money(item["line_total_cents"])
+        left = f"{qty}x {name}"
+        out += escpos.line(f"{left:<{width-right}}{total:>{right}}")
     out += escpos.separator(width)
     out += escpos.bold(True)
-    out += escpos.line(f"{'TOTALE':<20}{format_money(order['total_cents']):>12}")
+    out += escpos.line(f"{'TOTALE':<{width-right}}{format_money(order['total_cents']):>{right}}")
     out += escpos.bold(False)
-    out += escpos.feed(3)
+    out += escpos.feed(6)
     out += escpos.cut()
     return bytes(out)
 
@@ -55,7 +85,7 @@ def build_order_receipt(order_id: int) -> bytes:
     with get_connection() as conn:
         order = dict(conn.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone())
         items = [dict(row) for row in conn.execute("SELECT * FROM order_items WHERE order_id = ? ORDER BY id", (order_id,))]
-    return build_receipt_copy(order, items, "COPIA CAMERIERE") + build_receipt_copy(order, items, "COPIA CLIENTE")
+    return build_receipt_client(order, items, "COPIA CLIENTE") + build_receipt_waiter(order, items, "COPIA CAMERIERE")
 
 
 def send_to_printer(printer: dict[str, Any], data: bytes) -> None:
