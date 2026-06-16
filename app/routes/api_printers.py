@@ -122,7 +122,7 @@ def test_printer(printer_id: int) -> dict:
         escpos.init()
         + escpos.align("center")
         + escpos.bold(True)
-        + escpos.line("MSG 3.0")
+        + escpos.line("SAGRA DELL'OLIVA DOLCE")
         + escpos.bold(False)
         + escpos.line("Test stampante")
         + escpos.line(printer["name"])
