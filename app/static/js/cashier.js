@@ -40,6 +40,11 @@ function decrementProduct(productId) {
   renderCart();
 }
 
+function removeProduct(productId) {
+  cart.delete(productId);
+  renderCart();
+}
+
 function getTotalCents() {
   return [...cart.values()].reduce((sum, item) => sum + item.product.price_cents * item.quantity, 0);
 }
@@ -58,9 +63,17 @@ function renderCart() {
   const lines = document.querySelector('#cart-lines');
   lines.innerHTML = [...cart.values()].map(item => `
     <div class="cart-line">
-      <span>${item.quantity}× ${item.product.name}</span>
-      <strong>${money(item.product.price_cents * item.quantity)}</strong>
-      <button data-remove-id="${item.product.id}">−</button>
+      <div class="cart-product">
+        <strong>${item.product.name}</strong>
+        <span>${money(item.product.price_cents)} cad.</span>
+      </div>
+      <div class="quantity-controls" aria-label="Quantità ${item.product.name}">
+        <button type="button" data-decrement-id="${item.product.id}" aria-label="Diminuisci ${item.product.name}">−</button>
+        <span class="quantity">${item.quantity}</span>
+        <button type="button" data-increment-id="${item.product.id}" aria-label="Aumenta ${item.product.name}">+</button>
+        <button type="button" data-delete-id="${item.product.id}" aria-label="Rimuovi ${item.product.name}">×</button>
+      </div>
+      <strong class="line-total">${money(item.product.price_cents * item.quantity)}</strong>
     </div>
   `).join('') || '<p>Nessun prodotto selezionato.</p>';
 
@@ -112,8 +125,14 @@ document.addEventListener('click', event => {
   const productButton = event.target.closest('[data-product-id]');
   if (productButton) addProduct(Number(productButton.dataset.productId));
 
-  const removeButton = event.target.closest('[data-remove-id]');
-  if (removeButton) decrementProduct(Number(removeButton.dataset.removeId));
+  const decrementButton = event.target.closest('[data-decrement-id]');
+  if (decrementButton) decrementProduct(Number(decrementButton.dataset.decrementId));
+
+  const incrementButton = event.target.closest('[data-increment-id]');
+  if (incrementButton) addProduct(Number(incrementButton.dataset.incrementId));
+
+  const deleteButton = event.target.closest('[data-delete-id]');
+  if (deleteButton) removeProduct(Number(deleteButton.dataset.deleteId));
 
   const paidButton = event.target.closest('[data-paid]');
   if (paidButton) {
