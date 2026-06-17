@@ -6,7 +6,7 @@
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: .75rem;
 }
 
@@ -16,6 +16,7 @@
   gap: .35rem;
   align-content: center;
   text-align: center;
+  word-break: break-word;
 }
 
 .product-button .icon { font-size: 2rem; }
