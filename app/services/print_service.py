@@ -25,7 +25,7 @@ def format_money(cents: int) -> str:
 
 def build_receipt_waiter(order: dict[str, Any], items: list[dict[str, Any]], copy_label: str) -> bytes:
     width = 48
-    right = 8
+    right = 7
     width_lg = 24
     out = bytearray()
     out += escpos.init()
@@ -39,10 +39,9 @@ def build_receipt_waiter(order: dict[str, Any], items: list[dict[str, Any]], cop
     out += escpos.align("left")
     for item in items:
         qty = item["quantity"]
-        name = item["name_snapshot"][:18]
-        total = format_money(item["line_total_cents"])
-        left = f"{qty}x {name}"
-        out += escpos.line(f"{left:<{width_lg-right}}{total:>{right}}")
+        name = item["name_snapshot"]
+        line = f"{qty}x {name}"
+        out += escpos.line(f"{line}")
     out += escpos.separator(width_lg)
     out += escpos.line(f"{'TOTALE':<{width_lg-right}}{format_money(order['total_cents']):>{right}}")
     out += escpos.double_size(False) + escpos.bold(False)
