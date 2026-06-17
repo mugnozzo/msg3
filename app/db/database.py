@@ -32,23 +32,84 @@ def seed_if_empty(conn: sqlite3.Connection) -> None:
     if count:
         return
 
-    categories = [("Coperti", 10), ("Bevande", 20), ("Cucina", 30), ("Bar", 40)]
-    conn.executemany("INSERT INTO categories(name, sort_order) VALUES (?, ?)", categories)
-
-    cat_ids = {row["name"]: row["id"] for row in conn.execute("SELECT id, name FROM categories")}
-    products = [
-        (cat_ids["Coperti"], "Coperto", 200, 1, "🍽️", 10),
-        (cat_ids["Bevande"], "Acqua", 100, 1, "💧", 20),
-        (cat_ids["Bevande"], "Vino rosso", 500, 1, "🍷", 30),
-        (cat_ids["Bevande"], "Vino bianco", 500, 1, "🥂", 40),
-        (cat_ids["Bevande"], "Birra", 400, 1, "🍺", 50),
-        (cat_ids["Bevande"], "Coca Cola", 300, 1, "🥤", 60),
-        (cat_ids["Cucina"], "Bruschetta", 300, 1, "🥖", 70),
-        (cat_ids["Cucina"], "Zuppa", 700, 1, "🍲", 80),
-        (cat_ids["Cucina"], "Patatine", 350, 1, "🍟", 90),
-        (cat_ids["Cucina"], "Grigliata", 1200, 1, "🔥", 100),
-        (cat_ids["Bar"], "Caffè", 100, 1, "☕", 110),
+    categories = [
+        ("coperti", 10),
+        ("bevande", 20),
+        ("antipasti", 30),
+        ("panini", 40),
+        ("affettati", 50),
+        ("primi", 60),
+        ("secondi_pesce", 70),
+        ("secondi_carne", 80),
+        ("contorni", 90),
+        ("dolci", 100),
+        ("bar", 110),
+        ("olive", 120),
     ]
+
+    conn.executemany(
+        "INSERT INTO categories(name, sort_order) VALUES (?, ?)",
+        categories,
+    )
+
+    cat_ids = {
+        row["name"]: row["id"]
+        for row in conn.execute("SELECT id, name FROM categories")
+    }
+
+    products = [
+        (cat_ids["coperti"], "coperto", 100, 1, "🍽️", 10),
+
+        (cat_ids["bevande"], "vino rosso bott", 700, 1, "🍷", 20),
+        (cat_ids["bevande"], "vino bianco bott", 700, 1, "🥂", 30),
+        (cat_ids["bevande"], "birra alla spina", 400, 1, "🍺", 40),
+        (cat_ids["bevande"], "fanta", 250, 1, "🥤", 50),
+        (cat_ids["bevande"], "coca cola", 250, 1, "🥤", 60),
+        (cat_ids["bevande"], "acqua gassata", 150, 1, "💧", 70),
+        (cat_ids["bevande"], "acqua naturale", 150, 1, "💧", 80),
+
+        (cat_ids["antipasti"], "assaggio olive", 150, 1, "🫒", 90),
+        (cat_ids["antipasti"], "bruschetta", 200, 1, "🥖", 100),
+        (cat_ids["antipasti"], "piatto freddo", 700, 1, "🥗", 110),
+
+        (cat_ids["panini"], "panino prosciutto", 300, 1, "🥪", 120),
+        (cat_ids["panini"], "panino salame", 300, 1, "🥪", 130),
+
+        (cat_ids["affettati"], "prosciutto (etto)", 300, 1, "🍖", 140),
+        (cat_ids["affettati"], "salame (etto)", 250, 1, "🍖", 150),
+
+        (cat_ids["primi"], "zuppa", 500, 1, "🍲", 160),
+        (cat_ids["primi"], "farro", 500, 1, "🌾", 170),
+        (cat_ids["primi"], "penne al pomodoro", 500, 1, "🍝", 180),
+        (cat_ids["primi"], "penne al ragù", 600, 1, "🍝", 190),
+
+        (cat_ids["secondi_pesce"], "frittura di mare", 1000, 1, "🐟", 200),
+
+        (cat_ids["secondi_carne"], "cinghiale in umido", 950, 1, "🍖", 210),
+        (cat_ids["secondi_carne"], "grigliata mista", 800, 1, "🔥", 220),
+        (cat_ids["secondi_carne"], "rosticciana", 550, 1, "🔥", 230),
+        (cat_ids["secondi_carne"], "salsiccia", 550, 1, "🌭", 240),
+        (cat_ids["secondi_carne"], "bistecca di maiale", 550, 1, "🥩", 250),
+        (cat_ids["secondi_carne"], "bistecca di manzo", 1400, 1, "🥩", 260),
+        (cat_ids["secondi_carne"], "galletto", 600, 1, "🍗", 270),
+
+        (cat_ids["contorni"], "patatine", 250, 1, "🍟", 280),
+        (cat_ids["contorni"], "fagioli", 250, 1, "🫘", 290),
+        (cat_ids["contorni"], "pomodori", 250, 1, "🍅", 300),
+
+        (cat_ids["dolci"], "fetta di torta", 250, 1, "🍰", 310),
+        (cat_ids["dolci"], "torta intera", 2000, 1, "🎂", 320),
+
+        (cat_ids["bar"], "caffè", 100, 1, "☕", 330),
+        (cat_ids["bar"], "corretto", 150, 1, "☕", 340),
+        (cat_ids["bar"], "amari/grappe", 250, 1, "🥃", 350),
+        (cat_ids["bar"], "bicchiere vino", 150, 1, "🍷", 360),
+        (cat_ids["bar"], "bicchiere spumante", 150, 1, "🥂", 370),
+        (cat_ids["bar"], "spritz", 500, 1, "🍹", 380),
+
+        (cat_ids["olive"], "olive barattolo", 700, 1, "🫒", 390),
+    ]
+
     conn.executemany(
         """
         INSERT INTO products(category_id, name, price_cents, enabled, icon, sort_order)
@@ -57,18 +118,48 @@ def seed_if_empty(conn: sqlite3.Connection) -> None:
         products,
     )
 
-    conn.executemany("INSERT INTO menus(slug, name) VALUES (?, ?)", [("main", "Cassa principale"), ("bar", "Bar")])
-    menu_ids = {row["slug"]: row["id"] for row in conn.execute("SELECT id, slug FROM menus")}
-    product_rows = list(conn.execute("SELECT id, name FROM products ORDER BY sort_order"))
-    for idx, row in enumerate(product_rows):
+    conn.executemany(
+        "INSERT INTO menus(slug, name) VALUES (?, ?)",
+        [
+            ("main", "Cassa principale"),
+            ("bar", "Bar"),
+        ],
+    )
+
+    menu_ids = {
+        row["slug"]: row["id"]
+        for row in conn.execute("SELECT id, slug FROM menus")
+    }
+
+    product_rows = list(
         conn.execute(
-            "INSERT INTO menu_products(menu_id, product_id, sort_order) VALUES (?, ?, ?)",
-            (menu_ids["main"], row["id"], idx * 10),
+            """
+            SELECT p.id, p.name, c.name AS category_name, p.sort_order
+            FROM products p
+            JOIN categories c ON c.id = p.category_id
+            ORDER BY p.sort_order
+            """
         )
-        if row["name"] in {"Acqua", "Vino rosso", "Vino bianco", "Birra", "Coca Cola", "Caffè"}:
+    )
+
+    for row in product_rows:
+        # Main cash desk: everything except bar-only products
+        conn.execute(
+            """
+            INSERT INTO menu_products(menu_id, product_id, sort_order)
+            VALUES (?, ?, ?)
+            """,
+            (menu_ids["main"], row["id"], row["sort_order"]),
+        )
+
+        # Bar cash desk: beverages + bar products
+        if row["category_name"] in {"bevande", "bar", "dolci"}:
             conn.execute(
-                "INSERT INTO menu_products(menu_id, product_id, sort_order) VALUES (?, ?, ?)",
-                (menu_ids["bar"], row["id"], idx * 10),
+                """
+                INSERT INTO menu_products(menu_id, product_id, sort_order)
+                VALUES (?, ?, ?)
+                """,
+                (menu_ids["bar"], row["id"], row["sort_order"]),
             )
 
     conn.execute("INSERT INTO cashiers(name, enabled) VALUES (?, ?)", ("Cassa 1", 1))
