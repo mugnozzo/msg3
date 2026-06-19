@@ -70,10 +70,10 @@ Implemented:
 
 Not implemented yet:
 
-- product daily limits
+- product daily limits: possibility to set a maximum of a product for the current day and disable it when ran out
 - running-out alerts
-- kitchen dashboard
-- full statistics dashboard
+- kitchen dashboard: a page to show on a screen in the kitchen, with some of the products and the number of ordered quantities for each one
+- full statistics dashboard (food, quantities, money, filters by cash desk, day, week, year, ...)
 
 
 ## Notes
