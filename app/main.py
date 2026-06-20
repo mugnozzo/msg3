@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from app.db.database import init_db
 from app.routes import api_cashiers, api_meta, api_orders, api_printers, api_products, pages
 
-app = FastAPI(title="Mugnozzo Sagra Manager 3.0")
+app = FastAPI(title="Mugnozzo Sagra Gizmo 3.0")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 

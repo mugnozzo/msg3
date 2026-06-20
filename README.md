@@ -1,6 +1,6 @@
 # MSG 3.0 prototype
 
-First vertical slice for Mugnozzo Sagra Manager 3.0.
+First vertical slice for Mugnozzo Sagra Gizmo 3.0.
 
 ## Stack
 
