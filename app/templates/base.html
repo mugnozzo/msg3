@@ -9,17 +9,28 @@
 </head>
 <body>
   <header class="topbar">
-    <a href="/cashier/1">Cassa 1</a>
-    <a href="/cashier/main">Menu principale</a>
-    <a href="/cashier/bar">Menu Bar</a>
-    <a href="/orders">Ordini</a>
-    <a href="/settings/products">Prodotti</a>
-    <a href="/settings/printers">Stampanti</a>
-    <a href="/settings/cashiers">Casse</a>
-    <a href="/printers/test">Test rapido</a>
+    <nav id="main-nav" class="main-nav" aria-label="Menu principale" hidden>
+      <a href="/cashier/1">Cassa 1</a>
+      <a href="/cashier/main">Menu principale</a>
+      <a href="/cashier/bar">Menu Bar</a>
+      <a href="/orders">Ordini</a>
+      <a href="/settings/products">Prodotti</a>
+      <a href="/settings/printers">Stampanti</a>
+      <a href="/settings/cashiers">Casse</a>
+      <a href="/printers/test">Test rapido</a>
+    </nav>
   </header>
   <main>
     {% block content %}{% endblock %}
   </main>
+  <div class="topbar-main">
+    <button id="menu-toggle" class="topbar-button" type="button" aria-expanded="false" aria-controls="main-nav">
+      <span class="hamburger-icon" aria-hidden="true">☰</span>
+    </button>
+    <button id="fullscreen-toggle" class="topbar-button" type="button">
+      <span aria-hidden="true">⛶</span>
+    </button>
+  </div>
+  <script src="/static/js/main.js"></script>
 </body>
 </html>

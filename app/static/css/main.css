@@ -21,8 +21,9 @@ body {
 
 .topbar {
   display: flex;
-  gap: .75rem;
-  padding: .75rem 1rem;
+  flex-direction: column;
+  gap: .5rem;
+  padding: 0;
   background: var(--panel);
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -30,20 +31,79 @@ body {
   z-index: 10;
 }
 
-.topbar a {
+.topbar-main {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  right: 0;
+}
+
+.topbar-button {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 2.7rem;
+  padding: .55rem .8rem;
+}
+
+.hamburger-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.main-nav {
+  display: flex;
+  flex-direction: row;
+  gap: .35rem;
+  padding-top: .5rem;
+}
+
+.main-nav[hidden] {
+  display: none;
+}
+
+.main-nav a {
+  display: block;
   color: var(--accent);
   font-weight: 700;
   text-decoration: none;
+  padding: .7rem .8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  width: auto;
+}
+
+.main-nav a:active,
+.topbar-button:active {
+  transform: translateY(1px);
 }
 
 main { padding: 1rem; }
+
+h1 {
+  padding: 0;
+  margin: 0;
+}
+
+h2 {
+  margin-bottom: 0;
+}
+
+.page-subtitle {
+  padding: 0;
+  margin: 0 0 1rem;
+}
 
 button {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--panel);
   color: var(--text);
-  padding: .8rem 1rem;
+  padding: .5rem 1rem;
   font: inherit;
   font-weight: 700;
   cursor: pointer;

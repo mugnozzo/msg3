@@ -89,7 +89,7 @@ function renderCart() {
     <div class="cart-line">
       <div class="cart-product">
         <strong>${item.product.name_short || item.product.name}</strong>
-        <span>${money(item.product.price_cents)} cad.</span>
+        <span>${money(item.product.price_cents)}</span>
       </div>
       <div class="quantity-controls" aria-label="Quantità ${item.product.name_short || item.product.name}">
         <button type="button" data-decrement-id="${item.product.id}" aria-label="Diminuisci ${item.product.name_short || item.product.name}">−</button>
