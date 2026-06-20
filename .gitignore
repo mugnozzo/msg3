@@ -1,3 +1,8 @@
-data/
+/data/msg.sqlite3*
+/data/printer-output.bin
+/data/seed.json
 app/static/img/
-__pycache__
+__pycache__/
+.venv/
+venv/
+.gitkeep
