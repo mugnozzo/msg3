@@ -1,0 +1,165 @@
+{
+  "categories": [
+    {
+      "name": "Drinks",
+      "sort_order": 10
+    },
+    {
+      "name": "Starters",
+      "sort_order": 20
+    },
+    {
+      "name": "Main Courses",
+      "sort_order": 30
+    },
+    {
+      "name": "Desserts",
+      "sort_order": 40
+    },
+    {
+      "name": "Coffee Bar",
+      "sort_order": 50
+    }
+  ],
+  "products": [
+    {
+      "category": "Drinks",
+      "name": "Still Water 50cl",
+      "name_short": "Water",
+      "slug": "water",
+      "acronym": "WAT",
+      "price_cents": 100,
+      "sort_order": 10
+    },
+    {
+      "category": "Drinks",
+      "name": "Sparkling Water 50cl",
+      "name_short": "Sparkling",
+      "slug": "sparkling_water",
+      "acronym": "SPW",
+      "price_cents": 100,
+      "sort_order": 20
+    },
+    {
+      "category": "Drinks",
+      "name": "Craft Beer 40cl",
+      "name_short": "Beer",
+      "slug": "beer",
+      "acronym": "BER",
+      "price_cents": 500,
+      "sort_order": 30
+    },
+    {
+      "category": "Drinks",
+      "name": "Orange Soda",
+      "name_short": "Orange",
+      "slug": "orange_soda",
+      "acronym": "ORA",
+      "price_cents": 300,
+      "sort_order": 40
+    },
+
+    {
+      "category": "Starters",
+      "name": "Garlic Bread",
+      "name_short": "Garlic",
+      "slug": "garlic_bread",
+      "acronym": "GAR",
+      "price_cents": 350,
+      "sort_order": 10
+    },
+    {
+      "category": "Starters",
+      "name": "Mixed Salad",
+      "name_short": "Salad",
+      "slug": "mixed_salad",
+      "acronym": "SAL",
+      "price_cents": 400,
+      "sort_order": 20
+    },
+
+    {
+      "category": "Main Courses",
+      "name": "Cheeseburger with Fries",
+      "name_short": "Burger",
+      "slug": "cheeseburger",
+      "acronym": "BUR",
+      "price_cents": 950,
+      "sort_order": 10
+    },
+    {
+      "category": "Main Courses",
+      "name": "Grilled Chicken",
+      "name_short": "Chicken",
+      "slug": "grilled_chicken",
+      "acronym": "CHK",
+      "price_cents": 900,
+      "sort_order": 20
+    },
+    {
+      "category": "Main Courses",
+      "name": "Vegetable Lasagna",
+      "name_short": "Lasagna",
+      "slug": "vegetable_lasagna",
+      "acronym": "LAS",
+      "price_cents": 850,
+      "sort_order": 30
+    },
+    {
+      "category": "Main Courses",
+      "name": "Fish and Chips",
+      "name_short": "Fish&Chips",
+      "slug": "fish_and_chips",
+      "acronym": "FAC",
+      "price_cents": 1100,
+      "sort_order": 40
+    },
+
+    {
+      "category": "Desserts",
+      "name": "Chocolate Cake",
+      "name_short": "Cake",
+      "slug": "chocolate_cake",
+      "acronym": "CAK",
+      "price_cents": 450,
+      "sort_order": 10
+    },
+    {
+      "category": "Desserts",
+      "name": "Vanilla Ice Cream",
+      "name_short": "Ice Cream",
+      "slug": "ice_cream",
+      "acronym": "ICE",
+      "price_cents": 400,
+      "sort_order": 20
+    },
+
+    {
+      "category": "Coffee Bar",
+      "name": "Espresso Coffee",
+      "name_short": "Espresso",
+      "slug": "espresso",
+      "acronym": "ESP",
+      "price_cents": 150,
+      "sort_order": 10
+    },
+    {
+      "category": "Coffee Bar",
+      "name": "Cappuccino",
+      "name_short": "Cappuccino",
+      "slug": "cappuccino",
+      "acronym": "CAP",
+      "price_cents": 250,
+      "sort_order": 20
+    },
+    {
+      "category": "Coffee Bar",
+      "name": "Hot Tea",
+      "name_short": "Tea",
+      "slug": "tea",
+      "acronym": "TEA",
+      "price_cents": 250,
+      "sort_order": 30
+    }
+  ]
+}
