@@ -13,6 +13,7 @@
           <th>Nome</th>
           <th>Menu</th>
           <th>Stampante</th>
+          <th>Copie</th>
           <th>Stato</th>
           <th>Link</th>
           <th>Azioni</th>
@@ -34,6 +35,14 @@
       </label>
       <label>Stampante
         <select name="printer_id" required></select>
+      </label>
+      <label class="check-row">
+        <input type="checkbox" name="print_client_copy" checked>
+        Stampa copia cliente
+      </label>
+      <label class="check-row">
+        <input type="checkbox" name="print_waiter_copy" checked>
+        Stampa copia cameriere
       </label>
       <label class="check-row">
         <input type="checkbox" name="enabled" checked>

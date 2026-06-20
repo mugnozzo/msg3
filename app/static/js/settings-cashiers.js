@@ -46,6 +46,7 @@ function renderCashiers() {
       <td>${escapeHtml(cashier.name)}</td>
       <td>${escapeHtml(cashier.menu_name ?? '—')}</td>
       <td>${escapeHtml(cashier.printer_name ?? '—')}</td>
+      <td>${cashier.print_client_copy ? 'Cliente' : ''}${cashier.print_client_copy && cashier.print_waiter_copy ? ' + ' : ''}${cashier.print_waiter_copy ? 'Cameriere' : ''}</td>
       <td>${cashier.enabled ? 'Attiva' : 'Disattivata'}</td>
       <td><a href="/cashier/${cashier.id}">/cashier/${cashier.id}</a></td>
       <td class="row-actions">
@@ -60,6 +61,8 @@ function resetForm() {
   form.reset();
   form.elements.id.value = '';
   form.elements.enabled.checked = true;
+  form.elements.print_client_copy.checked = true;
+  form.elements.print_waiter_copy.checked = true;
   formTitle.textContent = 'Nuova cassa';
 }
 
@@ -71,6 +74,8 @@ function editCashier(id) {
   form.elements.menu_id.value = cashier.menu_id;
   form.elements.printer_id.value = cashier.printer_id;
   form.elements.enabled.checked = Boolean(cashier.enabled);
+  form.elements.print_client_copy.checked = Boolean(cashier.print_client_copy);
+  form.elements.print_waiter_copy.checked = Boolean(cashier.print_waiter_copy);
   formTitle.textContent = `Modifica: ${cashier.name}`;
 }
 
@@ -81,7 +86,9 @@ async function saveCashier(event) {
     name: form.elements.name.value.trim(),
     menu_id: Number(form.elements.menu_id.value),
     printer_id: Number(form.elements.printer_id.value),
-    enabled: form.elements.enabled.checked
+    enabled: form.elements.enabled.checked,
+    print_client_copy: form.elements.print_client_copy.checked,
+    print_waiter_copy: form.elements.print_waiter_copy.checked
   };
   const res = await fetch(id ? `/api/cashiers/${id}` : '/api/cashiers', {
     method: id ? 'PUT' : 'POST',

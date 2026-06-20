@@ -42,13 +42,16 @@ CREATE TABLE IF NOT EXISTS printers (
   name TEXT NOT NULL UNIQUE,
   kind TEXT NOT NULL CHECK(kind IN ('file','usb','network')),
   address TEXT NOT NULL,
-  enabled INTEGER NOT NULL DEFAULT 1
+  enabled INTEGER NOT NULL DEFAULT 1,
+  cut_enabled INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS cashier_settings (
   cashier_id INTEGER PRIMARY KEY REFERENCES cashiers(id) ON DELETE CASCADE,
   printer_id INTEGER NOT NULL REFERENCES printers(id),
-  menu_id INTEGER NOT NULL REFERENCES menus(id)
+  menu_id INTEGER NOT NULL REFERENCES menus(id),
+  print_client_copy INTEGER NOT NULL DEFAULT 1,
+  print_waiter_copy INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS orders (

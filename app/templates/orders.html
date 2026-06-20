@@ -16,7 +16,7 @@ async function loadOrders() {
   document.querySelector('#orders-table tbody').innerHTML = orders.map(o => `
     <tr>
       <td>${o.order_number}</td>
-      <td>${o.created_at}</td>
+      <td>${o.created_at_display ?? o.created_at}</td>
       <td>${o.cashier_name ?? ''}</td>
       <td>${money(o.total_cents)}</td>
       <td><button data-id="${o.id}">Ristampa</button></td>

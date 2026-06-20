@@ -13,6 +13,8 @@ class CashierPayload(BaseModel):
     menu_id: int
     printer_id: int
     enabled: bool = True
+    print_client_copy: bool = True
+    print_waiter_copy: bool = True
 
     @field_validator("name")
     @classmethod
@@ -31,7 +33,9 @@ def fetch_cashier(conn, cashier_id: int):
           m.slug AS menu_slug,
           m.name AS menu_name,
           cs.printer_id,
-          p.name AS printer_name
+          p.name AS printer_name,
+          COALESCE(cs.print_client_copy, 1) AS print_client_copy,
+          COALESCE(cs.print_waiter_copy, 1) AS print_waiter_copy
         FROM cashiers c
         LEFT JOIN cashier_settings cs ON cs.cashier_id = c.id
         LEFT JOIN menus m ON m.id = cs.menu_id
@@ -64,7 +68,9 @@ def list_cashiers() -> list[dict]:
               m.slug AS menu_slug,
               m.name AS menu_name,
               cs.printer_id,
-              p.name AS printer_name
+              p.name AS printer_name,
+              COALESCE(cs.print_client_copy, 1) AS print_client_copy,
+              COALESCE(cs.print_waiter_copy, 1) AS print_waiter_copy
             FROM cashiers c
             LEFT JOIN cashier_settings cs ON cs.cashier_id = c.id
             LEFT JOIN menus m ON m.id = cs.menu_id
@@ -96,10 +102,10 @@ def create_cashier(payload: CashierPayload) -> dict:
             cashier_id = cur.lastrowid
             conn.execute(
                 """
-                INSERT INTO cashier_settings(cashier_id, printer_id, menu_id)
-                VALUES (?, ?, ?)
+                INSERT INTO cashier_settings(cashier_id, printer_id, menu_id, print_client_copy, print_waiter_copy)
+                VALUES (?, ?, ?, ?, ?)
                 """,
-                (cashier_id, payload.printer_id, payload.menu_id),
+                (cashier_id, payload.printer_id, payload.menu_id, int(payload.print_client_copy), int(payload.print_waiter_copy)),
             )
             row = fetch_cashier(conn, int(cashier_id))
             return dict(row)
@@ -125,13 +131,15 @@ def update_cashier(cashier_id: int, payload: CashierPayload) -> dict:
             )
             conn.execute(
                 """
-                INSERT INTO cashier_settings(cashier_id, printer_id, menu_id)
-                VALUES (?, ?, ?)
+                INSERT INTO cashier_settings(cashier_id, printer_id, menu_id, print_client_copy, print_waiter_copy)
+                VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT(cashier_id) DO UPDATE SET
                   printer_id = excluded.printer_id,
-                  menu_id = excluded.menu_id
+                  menu_id = excluded.menu_id,
+                  print_client_copy = excluded.print_client_copy,
+                  print_waiter_copy = excluded.print_waiter_copy
                 """,
-                (cashier_id, payload.printer_id, payload.menu_id),
+                (cashier_id, payload.printer_id, payload.menu_id, int(payload.print_client_copy), int(payload.print_waiter_copy)),
             )
             row = fetch_cashier(conn, cashier_id)
             return dict(row)

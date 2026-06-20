@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from app.db.database import get_connection, rows_to_dicts
 from app.services.order_service import create_order
 from app.services.print_service import create_and_process_print_job
+from app.services.time_utils import format_rome_datetime
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 
@@ -44,7 +45,10 @@ def list_orders(limit: int = 50) -> list[dict]:
             """,
             (limit,),
         )
-        return rows_to_dicts(rows)
+        result = rows_to_dicts(rows)
+        for order in result:
+            order["created_at_display"] = format_rome_datetime(order.get("created_at"))
+        return result
 
 
 @router.get("/{order_id}")

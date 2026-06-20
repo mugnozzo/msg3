@@ -19,6 +19,7 @@ class PrinterPayload(BaseModel):
     kind: PrinterKind
     address: str = Field(default="", max_length=300)
     enabled: bool = True
+    cut_enabled: bool = True
 
     @field_validator("name", "address")
     @classmethod
@@ -54,10 +55,10 @@ def create_printer(payload: PrinterPayload) -> dict:
         with get_connection() as conn:
             cur = conn.execute(
                 """
-                INSERT INTO printers(name, kind, address, enabled)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO printers(name, kind, address, enabled, cut_enabled)
+                VALUES (?, ?, ?, ?, ?)
                 """,
-                (payload.name, payload.kind, address, int(payload.enabled)),
+                (payload.name, payload.kind, address, int(payload.enabled), int(payload.cut_enabled)),
             )
             printer_id = cur.lastrowid
             row = conn.execute("SELECT * FROM printers WHERE id = ?", (printer_id,)).fetchone()
@@ -80,10 +81,10 @@ def update_printer(printer_id: int, payload: PrinterPayload) -> dict:
             conn.execute(
                 """
                 UPDATE printers
-                SET name = ?, kind = ?, address = ?, enabled = ?
+                SET name = ?, kind = ?, address = ?, enabled = ?, cut_enabled = ?
                 WHERE id = ?
                 """,
-                (payload.name, payload.kind, address, int(payload.enabled), printer_id),
+                (payload.name, payload.kind, address, int(payload.enabled), int(payload.cut_enabled), printer_id),
             )
             row = conn.execute("SELECT * FROM printers WHERE id = ?", (printer_id,)).fetchone()
             return dict(row)
@@ -128,8 +129,9 @@ def test_printer(printer_id: int) -> dict:
         + escpos.line(printer["name"])
         + escpos.line(f"Tipo: {printer['kind']}")
         + escpos.feed(3)
-        + escpos.cut()
     )
+    if printer.get("cut_enabled", 1):
+        data += escpos.cut()
     try:
         send_to_printer(printer, data)
         return {"status": "ok"}

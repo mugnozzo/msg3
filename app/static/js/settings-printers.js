@@ -48,6 +48,7 @@ function renderPrinters() {
       <td>${moneySafe(printer.name)}</td>
       <td>${kindLabel(printer.kind)}</td>
       <td><code>${moneySafe(printer.address)}</code></td>
+      <td>${printer.cut_enabled ? 'Attivo' : 'Disattivato'}</td>
       <td>${printer.enabled ? 'Attiva' : 'Disattivata'}</td>
       <td class="row-actions">
         <button data-action="test" data-id="${printer.id}">Test</button>
@@ -62,6 +63,7 @@ function resetForm() {
   form.reset();
   form.elements.id.value = '';
   form.elements.enabled.checked = true;
+  form.elements.cut_enabled.checked = true;
   formTitle.textContent = 'Nuova stampante';
   updateHint();
 }
@@ -74,6 +76,7 @@ function editPrinter(id) {
   form.elements.kind.value = printer.kind;
   form.elements.address.value = printer.address;
   form.elements.enabled.checked = Boolean(printer.enabled);
+  form.elements.cut_enabled.checked = Boolean(printer.cut_enabled);
   formTitle.textContent = `Modifica: ${printer.name}`;
   updateHint();
 }
@@ -85,7 +88,8 @@ async function savePrinter(event) {
     name: form.elements.name.value.trim(),
     kind: form.elements.kind.value,
     address: form.elements.address.value.trim(),
-    enabled: form.elements.enabled.checked
+    enabled: form.elements.enabled.checked,
+    cut_enabled: form.elements.cut_enabled.checked
   };
   const res = await fetch(id ? `/api/printers/${id}` : '/api/printers', {
     method: id ? 'PUT' : 'POST',

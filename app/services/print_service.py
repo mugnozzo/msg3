@@ -7,6 +7,7 @@ from typing import Any
 
 from app.db.database import DEFAULT_FILE_PRINTER_PATH, get_connection
 from app.services import escpos
+from app.services.time_utils import format_rome_datetime
 
 _printer_locks: dict[int, threading.Lock] = {}
 _locks_guard = threading.Lock()
@@ -23,7 +24,7 @@ def format_money(cents: int) -> str:
     #return f"€ {cents / 100:.2f}".replace(".", ",")
     return f"{cents / 100:.2f}".replace(",", ".")
 
-def build_receipt_waiter(order: dict[str, Any], items: list[dict[str, Any]], copy_label: str) -> bytes:
+def build_receipt_waiter(order: dict[str, Any], items: list[dict[str, Any]], copy_label: str, cut_enabled: bool = True) -> bytes:
     width = 48
     right = 7
     width_lg = 24
@@ -34,7 +35,9 @@ def build_receipt_waiter(order: dict[str, Any], items: list[dict[str, Any]], cop
     out += escpos.line("SAGRA DELL'OLIVA DOLCE")
     out += escpos.line(copy_label)
     out += escpos.line(f"Ordine #{order['order_number']}")
-    out += escpos.line(order["created_at"])
+    out += escpos.line(format_rome_datetime(order["created_at"]))
+    if order.get("cashier_name"):
+        out += escpos.line(f"Cassa: {order['cashier_name']}")
     out += escpos.separator(width)
     out += escpos.align("left")
     for item in items:
@@ -46,11 +49,12 @@ def build_receipt_waiter(order: dict[str, Any], items: list[dict[str, Any]], cop
     out += escpos.line(f"{'TOTALE':<{width_lg-right}}{format_money(order['total_cents']):>{right}}")
     out += escpos.double_size(False) + escpos.bold(False)
     out += escpos.feed(6)
-    out += escpos.cut()
+    if cut_enabled:
+        out += escpos.cut()
     return bytes(out)
 
 
-def build_receipt_client(order: dict[str, Any], items: list[dict[str, Any]], copy_label: str) -> bytes:
+def build_receipt_client(order: dict[str, Any], items: list[dict[str, Any]], copy_label: str, cut_enabled: bool = True) -> bytes:
     width = 48
     right = 8
     width_lg = 24
@@ -62,7 +66,9 @@ def build_receipt_client(order: dict[str, Any], items: list[dict[str, Any]], cop
     out += escpos.line(copy_label)
     out += escpos.double_size(False) + escpos.bold(False)
     out += escpos.line(f"Ordine #{order['order_number']}")
-    out += escpos.line(order["created_at"])
+    out += escpos.line(format_rome_datetime(order["created_at"]))
+    if order.get("cashier_name"):
+        out += escpos.line(f"Cassa: {order['cashier_name']}")
     out += escpos.separator(width)
     out += escpos.align("left")
     for item in items:
@@ -76,15 +82,39 @@ def build_receipt_client(order: dict[str, Any], items: list[dict[str, Any]], cop
     out += escpos.line(f"{'TOTALE':<{width-right}}{format_money(order['total_cents']):>{right}}")
     out += escpos.bold(False)
     out += escpos.feed(6)
-    out += escpos.cut()
+    if cut_enabled:
+        out += escpos.cut()
     return bytes(out)
 
 
-def build_order_receipt(order_id: int) -> bytes:
+def build_order_receipt(order_id: int, printer: dict[str, Any] | None = None) -> bytes:
     with get_connection() as conn:
-        order = dict(conn.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone())
+        order_row = conn.execute(
+            """
+            SELECT o.*, c.name AS cashier_name,
+                   COALESCE(cs.print_client_copy, 1) AS print_client_copy,
+                   COALESCE(cs.print_waiter_copy, 1) AS print_waiter_copy
+            FROM orders o
+            LEFT JOIN cashiers c ON c.id = o.cashier_id
+            LEFT JOIN cashier_settings cs ON cs.cashier_id = o.cashier_id
+            WHERE o.id = ?
+            """,
+            (order_id,),
+        ).fetchone()
+        if order_row is None:
+            raise ValueError(f"Order not found: {order_id}")
+        order = dict(order_row)
         items = [dict(row) for row in conn.execute("SELECT * FROM order_items WHERE order_id = ? ORDER BY id", (order_id,))]
-    return build_receipt_client(order, items, "COPIA CLIENTE") + build_receipt_waiter(order, items, "COPIA CAMERIERE")
+
+    cut_enabled = bool(printer.get("cut_enabled", 1)) if printer else True
+    chunks: list[bytes] = []
+    if bool(order.get("print_client_copy", 1)):
+        chunks.append(build_receipt_client(order, items, "COPIA CLIENTE", cut_enabled=cut_enabled))
+    if bool(order.get("print_waiter_copy", 1)):
+        chunks.append(build_receipt_waiter(order, items, "COPIA CAMERIERE", cut_enabled=cut_enabled))
+    if not chunks:
+        raise ValueError("No receipt copies enabled for this cashier")
+    return b"".join(chunks)
 
 
 def send_to_printer(printer: dict[str, Any], data: bytes) -> None:
@@ -128,7 +158,7 @@ def process_print_job(print_job_id: int) -> None:
                 cur = conn.execute("INSERT INTO print_job_attempts(print_job_id) VALUES (?)", (print_job_id,))
                 attempt_id = cur.lastrowid
 
-            data = build_order_receipt(job["order_id"])
+            data = build_order_receipt(job["order_id"], printer)
             send_to_printer(printer, data)
 
             with get_connection() as conn:
