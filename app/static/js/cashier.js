@@ -6,6 +6,19 @@ let products = [];
 
 const money = cents => `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
 
+const numericSortValue = value => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : Number.MAX_SAFE_INTEGER;
+};
+
+function compareProductsByMenuOrder(a, b) {
+  return numericSortValue(a.category_sort_order) - numericSortValue(b.category_sort_order)
+    || numericSortValue(a.menu_sort_order) - numericSortValue(b.menu_sort_order)
+    || numericSortValue(a.product_sort_order) - numericSortValue(b.product_sort_order)
+    || String(a.name).localeCompare(String(b.name), 'it')
+    || numericSortValue(a.id) - numericSortValue(b.id);
+}
+
 async function loadProducts() {
   const response = await fetch(`/api/products?menu=${encodeURIComponent(menu)}`);
   products = await response.json();
@@ -45,8 +58,12 @@ function removeProduct(productId) {
   renderCart();
 }
 
+function getCartItemsInMenuOrder() {
+  return [...cart.values()].sort((a, b) => compareProductsByMenuOrder(a.product, b.product));
+}
+
 function getTotalCents() {
-  return [...cart.values()].reduce((sum, item) => sum + item.product.price_cents * item.quantity, 0);
+  return getCartItemsInMenuOrder().reduce((sum, item) => sum + item.product.price_cents * item.quantity, 0);
 }
 
 function quickPaidValues(totalCents) {
@@ -61,7 +78,7 @@ function quickPaidValues(totalCents) {
 
 function renderCart() {
   const lines = document.querySelector('#cart-lines');
-  lines.innerHTML = [...cart.values()].map(item => `
+  lines.innerHTML = getCartItemsInMenuOrder().map(item => `
     <div class="cart-line">
       <div class="cart-product">
         <strong>${item.product.name}</strong>
@@ -100,7 +117,7 @@ async function printOrder() {
     menu,
     cashier_id: cashierId,
     print_now: true,
-    items: [...cart.values()].map(item => ({product_id: item.product.id, quantity: item.quantity}))
+    items: getCartItemsInMenuOrder().map(item => ({product_id: item.product.id, quantity: item.quantity}))
   };
   try {
     const response = await fetch('/api/orders', {

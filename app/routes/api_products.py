@@ -27,7 +27,10 @@ def list_products(menu: str = "main", include_disabled: bool = False) -> list[di
             f"""
             SELECT
               p.id, p.name, p.price_cents, p.enabled, p.image_path, p.icon,
-              c.name AS category_name
+              c.name AS category_name,
+              c.sort_order AS category_sort_order,
+              mp.sort_order AS menu_sort_order,
+              p.sort_order AS product_sort_order
             FROM products p
             JOIN categories c ON c.id = p.category_id
             JOIN menu_products mp ON mp.product_id = p.id
