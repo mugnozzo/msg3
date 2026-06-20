@@ -93,3 +93,10 @@ code {
   border-radius: .4rem;
   padding: .12rem .28rem;
 }
+
+.product-thumb {
+  width: 2.2rem;
+  height: 2.2rem;
+  object-fit: contain;
+  display: block;
+}

@@ -10,7 +10,10 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS products (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   category_id INTEGER NOT NULL REFERENCES categories(id),
+  slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
+  name_short TEXT NOT NULL,
+  acronym TEXT,
   price_cents INTEGER NOT NULL CHECK(price_cents >= 0),
   enabled INTEGER NOT NULL DEFAULT 1,
   image_path TEXT,

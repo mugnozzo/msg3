@@ -5,6 +5,7 @@ let menus = [];
 const money = cents => `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
 const centsToInput = cents => (cents / 100).toFixed(2).replace('.', ',');
 const inputToCents = value => Math.round((Number.parseFloat(String(value).replace(',', '.')) || 0) * 100);
+const imagePathFor = product => product.image_path || product.resolved_image_path || `/static/img/products/${product.slug}.png`;
 
 async function api(path, options = {}) {
   const response = await fetch(path, options);
@@ -38,8 +39,11 @@ function renderProducts() {
   document.querySelector('#products-table tbody').innerHTML = products.map(p => `
     <tr class="${p.enabled ? '' : 'inactive-row'}">
       <td>${p.sort_order}</td>
-      <td>${p.icon ?? ''}</td>
+      <td><img class="product-thumb" src="${imagePathFor(p)}" alt="" onerror="this.replaceWith(document.createTextNode('—'))"></td>
+      <td><code>${p.slug}</code></td>
       <td>${p.name}</td>
+      <td>${p.name_short}</td>
+      <td>${p.acronym ?? ''}</td>
       <td>${p.category_name}</td>
       <td>${money(p.price_cents)}</td>
       <td>${p.menu_names.join(', ')}</td>
@@ -52,9 +56,11 @@ function renderProducts() {
 function resetForm() {
   document.querySelector('#editor-title').textContent = 'Nuovo prodotto';
   document.querySelector('#product-id').value = '';
+  document.querySelector('#product-slug').value = '';
   document.querySelector('#product-name').value = '';
+  document.querySelector('#product-name-short').value = '';
+  document.querySelector('#product-acronym').value = '';
   document.querySelector('#product-price').value = '';
-  document.querySelector('#product-icon').value = '';
   document.querySelector('#product-image').value = '';
   document.querySelector('#product-sort').value = '0';
   document.querySelector('#product-enabled').checked = true;
@@ -68,10 +74,12 @@ function editProduct(id) {
   if (!product) return;
   document.querySelector('#editor-title').textContent = `Modifica: ${product.name}`;
   document.querySelector('#product-id').value = product.id;
+  document.querySelector('#product-slug').value = product.slug;
   document.querySelector('#product-name').value = product.name;
+  document.querySelector('#product-name-short').value = product.name_short;
+  document.querySelector('#product-acronym').value = product.acronym ?? '';
   document.querySelector('#product-price').value = centsToInput(product.price_cents);
   document.querySelector('#product-category').value = product.category_id;
-  document.querySelector('#product-icon').value = product.icon ?? '';
   document.querySelector('#product-image').value = product.image_path ?? '';
   document.querySelector('#product-sort').value = product.sort_order ?? 0;
   document.querySelector('#product-enabled').checked = Boolean(product.enabled);
@@ -81,11 +89,14 @@ function editProduct(id) {
 
 function payloadFromForm() {
   return {
+    slug: document.querySelector('#product-slug').value.trim(),
     name: document.querySelector('#product-name').value.trim(),
+    name_short: document.querySelector('#product-name-short').value.trim(),
+    acronym: document.querySelector('#product-acronym').value.trim() || null,
     price_cents: inputToCents(document.querySelector('#product-price').value),
     category_id: Number(document.querySelector('#product-category').value),
     enabled: document.querySelector('#product-enabled').checked,
-    icon: document.querySelector('#product-icon').value.trim() || null,
+    icon: null,
     image_path: document.querySelector('#product-image').value.trim() || null,
     sort_order: Number(document.querySelector('#product-sort').value || 0),
     menu_ids: [...document.querySelectorAll('input[name="menu"]:checked')].map(input => Number(input.value)),

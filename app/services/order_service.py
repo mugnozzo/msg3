@@ -30,7 +30,7 @@ def create_order(items: list[dict], cashier_id: int = 1, menu_slug: str = "main"
                 f"""
                 SELECT
                   p.id,
-                  p.name,
+                  p.name_short AS name,
                   p.price_cents,
                   c.sort_order AS category_sort_order,
                   mp.sort_order AS menu_sort_order,
@@ -41,7 +41,7 @@ def create_order(items: list[dict], cashier_id: int = 1, menu_slug: str = "main"
                 WHERE p.id IN ({placeholders})
                   AND p.enabled = 1
                   AND mp.menu_id = ?
-                ORDER BY c.sort_order, mp.sort_order, p.sort_order, p.name
+                ORDER BY c.sort_order, mp.sort_order, p.sort_order, p.name_short
                 """,
                 (*product_ids, menu_id),
             )

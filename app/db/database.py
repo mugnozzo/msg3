@@ -58,68 +58,69 @@ def seed_if_empty(conn: sqlite3.Connection) -> None:
     }
 
     products = [
-        (cat_ids["coperti"], "coperto", 100, 1, "🍽️", 10),
+        # category, slug, full name, short name, acronym, price cents, enabled, sort order
+        (cat_ids["coperti"], "coperto", "Coperto", "Coperto", "COP", 100, 1, 10),
 
-        (cat_ids["bevande"], "vino rosso bott", 700, 1, "🍷", 20),
-        (cat_ids["bevande"], "vino bianco bott", 700, 1, "🥂", 30),
-        (cat_ids["bevande"], "birra alla spina", 400, 1, "🍺", 40),
-        (cat_ids["bevande"], "fanta", 250, 1, "🥤", 50),
-        (cat_ids["bevande"], "coca cola", 250, 1, "🥤", 60),
-        (cat_ids["bevande"], "acqua gassata", 150, 1, "💧", 70),
-        (cat_ids["bevande"], "acqua naturale", 150, 1, "💧", 80),
+        (cat_ids["bevande"], "vino_rosso", "Vino rosso bottiglia", "Vino rosso", "VR", 700, 1, 20),
+        (cat_ids["bevande"], "vino_bianco", "Vino bianco bottiglia", "Vino bianco", "VB", 700, 1, 30),
+        (cat_ids["bevande"], "birra", "Birra alla spina", "Birra", "BIR", 400, 1, 40),
+        (cat_ids["bevande"], "fanta", "Fanta lattina", "Fanta", "FAN", 250, 1, 50),
+        (cat_ids["bevande"], "coca", "Coca-Cola lattina", "Coca-Cola", "COC", 250, 1, 60),
+        (cat_ids["bevande"], "acqua_gassata", "Acqua gassata bottiglia", "Acqua gas.", "AG", 150, 1, 70),
+        (cat_ids["bevande"], "acqua_naturale", "Acqua naturale bottiglia", "Acqua nat.", "AN", 150, 1, 80),
 
-        (cat_ids["antipasti"], "assaggio olive", 150, 1, "🫒", 90),
-        (cat_ids["antipasti"], "bruschetta", 200, 1, "🥖", 100),
-        (cat_ids["antipasti"], "piatto freddo", 700, 1, "🥗", 110),
+        (cat_ids["antipasti"], "olive_assaggio", "Assaggio di olive", "Assaggio olive", "OLV", 150, 1, 90),
+        (cat_ids["antipasti"], "bruschetta", "Bruschetta", "Bruschetta", "BRU", 200, 1, 100),
+        (cat_ids["antipasti"], "piatto_freddo", "Piatto freddo", "Piatto freddo", "PF", 700, 1, 110),
 
-        (cat_ids["panini"], "panino prosciutto", 300, 1, "🥪", 120),
-        (cat_ids["panini"], "panino salame", 300, 1, "🥪", 130),
+        (cat_ids["panini"], "panino_prosciutto", "Panino con prosciutto", "Panino prosciutto", "PP", 300, 1, 120),
+        (cat_ids["panini"], "panino_salame", "Panino con salame", "Panino salame", "PS", 300, 1, 130),
 
-        (cat_ids["affettati"], "prosciutto (etto)", 300, 1, "🍖", 140),
-        (cat_ids["affettati"], "salame (etto)", 250, 1, "🍖", 150),
+        (cat_ids["affettati"], "prosciutto", "Prosciutto 100 g", "Prosciutto", "PRO", 300, 1, 140),
+        (cat_ids["affettati"], "salame", "Salame 100 g", "Salame", "SAL", 250, 1, 150),
 
-        (cat_ids["primi"], "zuppa", 500, 1, "🍲", 160),
-        (cat_ids["primi"], "farro", 500, 1, "🌾", 170),
-        (cat_ids["primi"], "penne al pomodoro", 500, 1, "🍝", 180),
-        (cat_ids["primi"], "penne al ragù", 600, 1, "🍝", 190),
+        (cat_ids["primi"], "zuppa", "Zuppa", "Zuppa", "ZUP", 500, 1, 160),
+        (cat_ids["primi"], "farro", "Farro", "Farro", "FAR", 500, 1, 170),
+        (cat_ids["primi"], "penne_pomodoro", "Penne al pomodoro", "Penne pomodoro", "PPOM", 500, 1, 180),
+        (cat_ids["primi"], "penne_ragu", "Penne al ragù", "Penne ragù", "PRAG", 600, 1, 190),
 
-        (cat_ids["secondi_pesce"], "frittura di mare", 1000, 1, "🐟", 200),
+        (cat_ids["secondi_pesce"], "frittura", "Frittura di mare", "Frittura", "FRI", 1000, 1, 200),
 
-        (cat_ids["secondi_carne"], "cinghiale in umido", 950, 1, "🍖", 210),
-        (cat_ids["secondi_carne"], "grigliata mista", 800, 1, "🔥", 220),
-        (cat_ids["secondi_carne"], "rosticciana", 550, 1, "🔥", 230),
-        (cat_ids["secondi_carne"], "salsiccia", 550, 1, "🌭", 240),
-        (cat_ids["secondi_carne"], "bistecca di maiale", 550, 1, "🥩", 250),
-        (cat_ids["secondi_carne"], "bistecca di manzo", 1400, 1, "🥩", 260),
-        (cat_ids["secondi_carne"], "galletto", 600, 1, "🍗", 270),
+        (cat_ids["secondi_carne"], "cinghiale", "Cinghiale in umido", "Cinghiale", "CIN", 950, 1, 210),
+        (cat_ids["secondi_carne"], "grigliata", "Grigliata mista", "Grigliata", "GRI", 800, 1, 220),
+        (cat_ids["secondi_carne"], "rosticciana", "Rosticciana", "Rosticciana", "ROS", 550, 1, 230),
+        (cat_ids["secondi_carne"], "salsiccia", "Salsiccia", "Salsiccia", "SALC", 550, 1, 240),
+        (cat_ids["secondi_carne"], "bistecca_maiale", "Bistecca di maiale", "Bistecca maiale", "BM", 550, 1, 250),
+        (cat_ids["secondi_carne"], "bistecca_manzo", "Bistecca di manzo", "Bistecca manzo", "BMAN", 1400, 1, 260),
+        (cat_ids["secondi_carne"], "galletto", "Mezzo galletto alla brace", "Mezzo galletto", "GAL", 600, 1, 270),
 
-        (cat_ids["contorni"], "patatine", 250, 1, "🍟", 280),
-        (cat_ids["contorni"], "fagioli", 250, 1, "🫘", 290),
-        (cat_ids["contorni"], "pomodori", 250, 1, "🍅", 300),
+        (cat_ids["contorni"], "patatine", "Patatine fritte", "Patatine", "PAT", 250, 1, 280),
+        (cat_ids["contorni"], "fagioli", "Fagioli", "Fagioli", "FAG", 250, 1, 290),
+        (cat_ids["contorni"], "pomodori", "Pomodori", "Pomodori", "POM", 250, 1, 300),
 
-        (cat_ids["dolci"], "fetta di torta", 250, 1, "🍰", 310),
-        (cat_ids["dolci"], "torta intera", 2000, 1, "🎂", 320),
+        (cat_ids["dolci"], "fetta_di_torta", "Fetta di torta", "Fetta torta", "FT", 250, 1, 310),
+        (cat_ids["dolci"], "torta_intera", "Torta intera", "Torta intera", "TI", 2000, 1, 320),
 
-        (cat_ids["bar"], "caffè", 100, 1, "☕", 330),
-        (cat_ids["bar"], "corretto", 150, 1, "☕", 340),
-        (cat_ids["bar"], "amari/grappe", 250, 1, "🥃", 350),
-        (cat_ids["bar"], "bicchiere vino rosso", 150, 1, "🍷", 360),
-        (cat_ids["bar"], "bicchiere vino bianco", 150, 1, "🍷", 360),
-        (cat_ids["bar"], "bicchiere spumante", 150, 1, "🥂", 370),
-        (cat_ids["bar"], "bicchiere prosecco", 150, 1, "🥂", 370),
-        (cat_ids["bar"], "bottiglia spumante", 150, 1, "🥂", 370),
-        (cat_ids["bar"], "bottiglia prosecco", 150, 1, "🥂", 370),
-        (cat_ids["bar"], "bottiglia grappa", 150, 1, "🥂", 370),
-        (cat_ids["bar"], "bottiglia limoncello", 150, 1, "🥂", 370),
-        (cat_ids["bar"], "spritz", 500, 1, "🍹", 380),
+        (cat_ids["bar"], "caffe", "Caffè", "Caffè", "CAF", 100, 1, 330),
+        (cat_ids["bar"], "corretto", "Caffè corretto", "Corretto", "COR", 150, 1, 340),
+        (cat_ids["bar"], "amari", "Amari / grappe", "Amari/grappe", "AMA", 250, 1, 350),
+        (cat_ids["bar"], "bicchiere_vino_rosso", "Bicchiere vino rosso", "Bicch. vino rosso", "BVR", 150, 1, 360),
+        (cat_ids["bar"], "bicchiere_vino_bianco", "Bicchiere vino bianco", "Bicch. vino bianco", "BVB", 150, 1, 370),
+        (cat_ids["bar"], "spumante_bicchiere", "Bicchiere spumante", "Bicch. spumante", "BS", 150, 1, 380),
+        (cat_ids["bar"], "prosecco_bicchiere", "Bicchiere prosecco", "Bicch. prosecco", "BP", 150, 1, 390),
+        (cat_ids["bar"], "spumante_bottiglia", "Bottiglia spumante", "Bott. spumante", "BSP", 150, 1, 400),
+        (cat_ids["bar"], "prosecco_bottiglia", "Bottiglia prosecco", "Bott. prosecco", "BPR", 150, 1, 410),
+        (cat_ids["bar"], "grappa_bottiglia", "Bottiglia grappa", "Bott. grappa", "BGR", 150, 1, 420),
+        (cat_ids["bar"], "limoncello_bottiglia", "Bottiglia limoncello", "Bott. limoncello", "BLI", 150, 1, 430),
+        (cat_ids["bar"], "spritz", "Spritz", "Spritz", "SPR", 500, 1, 440),
 
-        (cat_ids["olive"], "olive barattolo", 700, 1, "🫒", 390),
+        (cat_ids["olive"], "olive_barattolo", "Barattolo olive", "Olive barattolo", "OB", 700, 1, 450),
     ]
 
     conn.executemany(
         """
-        INSERT INTO products(category_id, name, price_cents, enabled, icon, sort_order)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO products(category_id, slug, name, name_short, acronym, price_cents, enabled, sort_order)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         products,
     )

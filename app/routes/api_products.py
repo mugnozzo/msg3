@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
@@ -7,9 +9,14 @@ from app.db.database import get_connection, rows_to_dicts
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
+_SLUG_RE = re.compile(r"^[a-z0-9_]+$")
+
 
 class ProductIn(BaseModel):
+    slug: str = Field(min_length=1)
     name: str = Field(min_length=1)
+    name_short: str = Field(min_length=1)
+    acronym: str | None = None
     price_cents: int = Field(ge=0)
     category_id: int
     enabled: bool = True
@@ -19,6 +26,24 @@ class ProductIn(BaseModel):
     menu_ids: list[int] = []
 
 
+def _clean_product_payload(payload: ProductIn) -> dict:
+    slug = payload.slug.strip().lower().replace("-", "_")
+    if not _SLUG_RE.match(slug):
+        raise HTTPException(status_code=400, detail="Slug non valido: usa solo lettere minuscole, numeri e underscore")
+    return {
+        "slug": slug,
+        "name": payload.name.strip(),
+        "name_short": payload.name_short.strip(),
+        "acronym": (payload.acronym or "").strip().upper() or None,
+        "price_cents": payload.price_cents,
+        "category_id": payload.category_id,
+        "enabled": int(payload.enabled),
+        "icon": payload.icon,
+        "image_path": payload.image_path,
+        "sort_order": payload.sort_order,
+    }
+
+
 @router.get("")
 def list_products(menu: str = "main", include_disabled: bool = False) -> list[dict]:
     with get_connection() as conn:
@@ -26,7 +51,10 @@ def list_products(menu: str = "main", include_disabled: bool = False) -> list[di
         rows = conn.execute(
             f"""
             SELECT
-              p.id, p.name, p.price_cents, p.enabled, p.image_path, p.icon,
+              p.id, p.slug, p.name, p.name_short, p.acronym,
+              p.price_cents, p.enabled,
+              COALESCE(p.image_path, '/static/img/products/' || p.slug || '.png') AS image_path,
+              p.icon,
               c.name AS category_name,
               c.sort_order AS category_sort_order,
               mp.sort_order AS menu_sort_order,
@@ -50,6 +78,7 @@ def list_products_admin() -> list[dict]:
             """
             SELECT
               p.*,
+              COALESCE(p.image_path, '/static/img/products/' || p.slug || '.png') AS resolved_image_path,
               c.name AS category_name,
               COALESCE(group_concat(m.id), '') AS menu_ids,
               COALESCE(group_concat(m.name), '') AS menu_names
@@ -73,7 +102,14 @@ def list_products_admin() -> list[dict]:
 @router.get("/{product_id}")
 def get_product(product_id: int) -> dict:
     with get_connection() as conn:
-        row = conn.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
+        row = conn.execute(
+            """
+            SELECT *, COALESCE(image_path, '/static/img/products/' || slug || '.png') AS resolved_image_path
+            FROM products
+            WHERE id = ?
+            """,
+            (product_id,),
+        ).fetchone()
         if row is None:
             raise HTTPException(status_code=404, detail="Product not found")
         item = dict(row)
@@ -85,16 +121,23 @@ def get_product(product_id: int) -> dict:
 
 @router.post("")
 def create_product(payload: ProductIn) -> dict:
+    clean = _clean_product_payload(payload)
     with get_connection() as conn:
-        category = conn.execute("SELECT id FROM categories WHERE id = ?", (payload.category_id,)).fetchone()
+        category = conn.execute("SELECT id FROM categories WHERE id = ?", (clean["category_id"],)).fetchone()
         if category is None:
             raise HTTPException(status_code=400, detail="Unknown category")
+        duplicate = conn.execute("SELECT id FROM products WHERE slug = ?", (clean["slug"],)).fetchone()
+        if duplicate is not None:
+            raise HTTPException(status_code=400, detail="Slug già usato")
         cur = conn.execute(
             """
-            INSERT INTO products(category_id, name, price_cents, enabled, icon, image_path, sort_order)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO products(category_id, slug, name, name_short, acronym, price_cents, enabled, icon, image_path, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (payload.category_id, payload.name.strip(), payload.price_cents, int(payload.enabled), payload.icon, payload.image_path, payload.sort_order),
+            (
+                clean["category_id"], clean["slug"], clean["name"], clean["name_short"], clean["acronym"],
+                clean["price_cents"], clean["enabled"], clean["icon"], clean["image_path"], clean["sort_order"],
+            ),
         )
         product_id = int(cur.lastrowid)
         _replace_product_menus(conn, product_id, payload.menu_ids)
@@ -103,17 +146,25 @@ def create_product(payload: ProductIn) -> dict:
 
 @router.put("/{product_id}")
 def update_product(product_id: int, payload: ProductIn) -> dict:
+    clean = _clean_product_payload(payload)
     with get_connection() as conn:
         exists = conn.execute("SELECT id FROM products WHERE id = ?", (product_id,)).fetchone()
         if exists is None:
             raise HTTPException(status_code=404, detail="Product not found")
+        duplicate = conn.execute("SELECT id FROM products WHERE slug = ? AND id <> ?", (clean["slug"], product_id)).fetchone()
+        if duplicate is not None:
+            raise HTTPException(status_code=400, detail="Slug già usato")
         conn.execute(
             """
             UPDATE products
-            SET category_id = ?, name = ?, price_cents = ?, enabled = ?, icon = ?, image_path = ?, sort_order = ?
+            SET category_id = ?, slug = ?, name = ?, name_short = ?, acronym = ?,
+                price_cents = ?, enabled = ?, icon = ?, image_path = ?, sort_order = ?
             WHERE id = ?
             """,
-            (payload.category_id, payload.name.strip(), payload.price_cents, int(payload.enabled), payload.icon, payload.image_path, payload.sort_order, product_id),
+            (
+                clean["category_id"], clean["slug"], clean["name"], clean["name_short"], clean["acronym"],
+                clean["price_cents"], clean["enabled"], clean["icon"], clean["image_path"], clean["sort_order"], product_id,
+            ),
         )
         _replace_product_menus(conn, product_id, payload.menu_ids)
         return {"ok": True}

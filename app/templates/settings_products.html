@@ -14,8 +14,11 @@
         <thead>
           <tr>
             <th>Ordine</th>
-            <th>Icona</th>
-            <th>Nome</th>
+            <th>Img</th>
+            <th>Slug</th>
+            <th>Nome completo</th>
+            <th>Nome corto</th>
+            <th>Sigla</th>
             <th>Categoria</th>
             <th>Prezzo</th>
             <th>Menu</th>
@@ -32,8 +35,20 @@
       <form id="product-form">
         <input type="hidden" id="product-id">
 
-        <label>Nome
+        <label>Slug
+          <input id="product-slug" required placeholder="es. penne_pomodoro">
+        </label>
+
+        <label>Nome completo
           <input id="product-name" required>
+        </label>
+
+        <label>Nome corto
+          <input id="product-name-short" required>
+        </label>
+
+        <label>Sigla
+          <input id="product-acronym" placeholder="es. PP">
         </label>
 
         <label>Prezzo (€)
@@ -44,12 +59,8 @@
           <select id="product-category" required></select>
         </label>
 
-        <label>Icona/testo breve
-          <input id="product-icon" placeholder="es. 🍲">
-        </label>
-
-        <label>Percorso immagine
-          <input id="product-image" placeholder="/static/img/products/zuppa.png">
+        <label>Percorso immagine opzionale
+          <input id="product-image" placeholder="vuoto = /static/img/products/<slug>.png">
         </label>
 
         <label>Ordine

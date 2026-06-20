@@ -15,7 +15,7 @@ function compareProductsByMenuOrder(a, b) {
   return numericSortValue(a.category_sort_order) - numericSortValue(b.category_sort_order)
     || numericSortValue(a.menu_sort_order) - numericSortValue(b.menu_sort_order)
     || numericSortValue(a.product_sort_order) - numericSortValue(b.product_sort_order)
-    || String(a.name).localeCompare(String(b.name), 'it')
+    || String(a.name_short || a.name).localeCompare(String(b.name_short || b.name), 'it')
     || numericSortValue(a.id) - numericSortValue(b.id);
 }
 
@@ -27,13 +27,20 @@ async function loadProducts() {
 
 function renderProducts() {
   const grid = document.querySelector('#product-grid');
-  grid.innerHTML = products.map(product => `
-    <button class="product-button" data-product-id="${product.id}">
-      <span class="icon">${product.icon ?? '□'}</span>
-      <strong class="name">${product.name}</strong>
-      <span class="price">${money(product.price_cents)}</span>
-    </button>
-  `).join('');
+  grid.innerHTML = products.map(product => {
+    const displayName = product.name_short || product.name;
+    const imagePath = product.image_path || `/static/img/products/${product.slug}.png`;
+    const fallback = product.acronym || displayName.slice(0, 2).toUpperCase();
+    return `
+      <button class="product-button" data-product-id="${product.id}">
+        <span class="product-image-wrap">
+          <img class="product-image" src="${imagePath}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${fallback}';">
+        </span>
+        <strong class="name">${displayName}</strong>
+        <span class="price">${money(product.price_cents)}</span>
+      </button>
+    `;
+  }).join('');
 }
 
 function addProduct(productId) {
@@ -81,14 +88,14 @@ function renderCart() {
   lines.innerHTML = getCartItemsInMenuOrder().map(item => `
     <div class="cart-line">
       <div class="cart-product">
-        <strong>${item.product.name}</strong>
+        <strong>${item.product.name_short || item.product.name}</strong>
         <span>${money(item.product.price_cents)} cad.</span>
       </div>
-      <div class="quantity-controls" aria-label="Quantità ${item.product.name}">
-        <button type="button" data-decrement-id="${item.product.id}" aria-label="Diminuisci ${item.product.name}">−</button>
+      <div class="quantity-controls" aria-label="Quantità ${item.product.name_short || item.product.name}">
+        <button type="button" data-decrement-id="${item.product.id}" aria-label="Diminuisci ${item.product.name_short || item.product.name}">−</button>
         <span class="quantity">${item.quantity}</span>
-        <button type="button" data-increment-id="${item.product.id}" aria-label="Aumenta ${item.product.name}">+</button>
-        <button type="button" data-delete-id="${item.product.id}" aria-label="Rimuovi ${item.product.name}">×</button>
+        <button type="button" data-increment-id="${item.product.id}" aria-label="Aumenta ${item.product.name_short || item.product.name}">+</button>
+        <button type="button" data-delete-id="${item.product.id}" aria-label="Rimuovi ${item.product.name_short || item.product.name}">×</button>
       </div>
       <strong class="line-total">${money(item.product.price_cents * item.quantity)}</strong>
     </div>
