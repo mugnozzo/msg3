@@ -83,3 +83,19 @@ def settings_printers_page(request: Request):
 @router.get("/settings/cashiers")
 def settings_cashiers_page(request: Request):
     return templates.TemplateResponse("settings_cashiers.html", {"request": request})
+
+
+@router.get("/kitchen/{slug}")
+def kitchen_screen_page(request: Request, slug: str):
+    with get_connection() as conn:
+        screen = conn.execute(
+            """
+            SELECT id, name, slug, sort_order, is_active
+            FROM kitchen_screens
+            WHERE slug = ? AND is_active = 1
+            """,
+            (slug,),
+        ).fetchone()
+    if screen is None:
+        raise HTTPException(status_code=404, detail="Kitchen screen not found")
+    return templates.TemplateResponse("kitchen_screen.html", {"request": request, "screen": dict(screen)})

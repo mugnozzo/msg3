@@ -34,6 +34,22 @@ CREATE TABLE IF NOT EXISTS menu_products (
   PRIMARY KEY (menu_id, product_id)
 );
 
+
+CREATE TABLE IF NOT EXISTS kitchen_screens (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  is_active INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS kitchen_screen_products (
+  screen_id INTEGER NOT NULL REFERENCES kitchen_screens(id) ON DELETE CASCADE,
+  product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (screen_id, product_id)
+);
+
 CREATE TABLE IF NOT EXISTS cashiers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,

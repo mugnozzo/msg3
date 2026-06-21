@@ -58,6 +58,7 @@ def seed_database(conn: sqlite3.Connection, seed: dict[str, Any]) -> None:
     categories = seed.get("categories", [])
     products = seed.get("products", [])
     menus = seed.get("menus", [])
+    kitchen_screens = seed.get("kitchen_screens", [])
     cashiers = seed.get("cashiers", [])
     printers = seed.get("printers", [])
     cashier_settings = seed.get("cashier_settings", [])
@@ -143,6 +144,8 @@ def seed_database(conn: sqlite3.Connection, seed: dict[str, Any]) -> None:
         menu_product_rows,
     )
 
+    seed_kitchen_screens(conn, kitchen_screens, product_ids)
+
     for cashier in cashiers:
         conn.execute(
             "INSERT INTO cashiers(name, enabled) VALUES (?, ?)",
@@ -203,3 +206,82 @@ def seed_database(conn: sqlite3.Connection, seed: dict[str, Any]) -> None:
 
 def rows_to_dicts(rows: Iterable[sqlite3.Row]) -> list[dict[str, Any]]:
     return [dict(row) for row in rows]
+
+
+def seed_kitchen_screens(
+    conn: sqlite3.Connection,
+    kitchen_screens: list[dict[str, Any]],
+    product_ids: dict[str, int],
+) -> None:
+    if not kitchen_screens:
+        kitchen_screens = [
+            {
+                "name": "Grill",
+                "slug": "grill",
+                "sort_order": 10,
+                "products": infer_default_grill_products(product_ids),
+            }
+        ]
+
+    screen_rows = []
+    for screen in kitchen_screens:
+        screen_rows.append(
+            (
+                screen["name"],
+                screen["slug"],
+                int(screen.get("sort_order", 0)),
+                int(screen.get("is_active", 1)),
+            )
+        )
+
+    conn.executemany(
+        """
+        INSERT INTO kitchen_screens(name, slug, sort_order, is_active)
+        VALUES (?, ?, ?, ?)
+        """,
+        screen_rows,
+    )
+
+    screen_ids = {
+        row["slug"]: row["id"]
+        for row in conn.execute("SELECT id, slug FROM kitchen_screens")
+    }
+
+    screen_product_rows = []
+    for screen in kitchen_screens:
+        screen_slug = screen["slug"]
+        for index, product_slug in enumerate(screen.get("products", []), start=1):
+            if product_slug not in product_ids:
+                raise ValueError(f"Unknown product in kitchen screen {screen_slug}: {product_slug}")
+            product_sort_order = conn.execute(
+                "SELECT sort_order FROM products WHERE slug = ?",
+                (product_slug,),
+            ).fetchone()[0]
+            screen_product_rows.append(
+                (screen_ids[screen_slug], product_ids[product_slug], product_sort_order or index * 10)
+            )
+
+    conn.executemany(
+        """
+        INSERT INTO kitchen_screen_products(screen_id, product_id, sort_order)
+        VALUES (?, ?, ?)
+        """,
+        screen_product_rows,
+    )
+
+
+def infer_default_grill_products(product_ids: dict[str, int]) -> list[str]:
+    known_grill_slugs = [
+        "penne_pomodoro",
+        "penne_ragu",
+        "frittura",
+        "grigliata",
+        "rosticciana",
+        "salsiccia",
+        "bistecca_maiale",
+        "bistecca_manzo",
+        "galletto",
+    ]
+    inferred = [slug for slug in known_grill_slugs if slug in product_ids]
+    if inferred:
+        return inferred

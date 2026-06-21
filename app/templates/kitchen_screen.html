@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ screen.name }} - MSG 3.0{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/css/kitchen-screen.css">{% endblock %}
+{% block content %}
+<section class="kitchen-screen" data-screen-slug="{{ screen.slug }}">
+  <header class="kitchen-header">
+    <div>
+      <h1>{{ screen.name }}</h1>
+      <p class="page-subtitle">Schermata cucina · aggiornamento automatico ogni 3 secondi</p>
+    </div>
+    <div class="kitchen-summary">
+      <span>Totale</span>
+      <strong id="kitchen-total">0</strong>
+    </div>
+  </header>
+
+  <div id="kitchen-status" class="status"></div>
+  <div id="kitchen-grid" class="kitchen-grid"></div>
+</section>
+<script src="/static/js/kitchen-screen.js"></script>
+{% endblock %}
