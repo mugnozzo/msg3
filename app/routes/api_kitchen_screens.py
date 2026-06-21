@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.db.database import get_connection, rows_to_dicts
+from app.services.time_utils import current_rome_day_bounds_for_db
 
 router = APIRouter(prefix="/api/kitchen-screens", tags=["kitchen-screens"])
 
@@ -102,6 +103,8 @@ def get_kitchen_screen_totals(slug: str) -> dict:
         if screen is None:
             raise HTTPException(status_code=404, detail="Kitchen screen not found")
 
+        day_start, day_end = current_rome_day_bounds_for_db()
+
         rows = conn.execute(
             """
             SELECT
@@ -116,16 +119,21 @@ def get_kitchen_screen_totals(slug: str) -> dict:
             FROM kitchen_screen_products ksp
             JOIN products p ON p.id = ksp.product_id
             LEFT JOIN order_items oi ON oi.product_id = p.id
-            LEFT JOIN orders o ON o.id = oi.order_id AND o.status = 'created'
+            LEFT JOIN orders o ON o.id = oi.order_id
+             AND o.status = 'created'
+             AND o.created_at >= ?
+             AND o.created_at < ?
             WHERE ksp.screen_id = ? AND p.enabled = 1
             GROUP BY p.id
             ORDER BY ksp.sort_order, p.sort_order, p.name
             """,
-            (screen["id"],),
+            (day_start, day_end, screen["id"]),
         )
         products = rows_to_dicts(rows)
         return {
             "screen": dict(screen),
+            "day_start": day_start,
+            "day_end": day_end,
             "products": products,
             "total_items": sum(int(product["quantity_total"]) for product in products),
         }

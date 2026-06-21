@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 APP_TIMEZONE = ZoneInfo("Europe/Rome")
@@ -38,3 +38,14 @@ def format_rome_datetime(value: str | datetime | None) -> str:
     if local_dt is None:
         return ""
     return local_dt.strftime(RECEIPT_DATETIME_FORMAT)
+
+
+def current_rome_day_bounds_for_db() -> tuple[str, str]:
+    """Return UTC SQLite datetime bounds for today's Europe/Rome calendar day."""
+    today = datetime.now(APP_TIMEZONE).date()
+    start_local = datetime.combine(today, time.min, tzinfo=APP_TIMEZONE)
+    end_local = start_local + timedelta(days=1)
+    return (
+        start_local.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S"),
+        end_local.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S"),
+    )
