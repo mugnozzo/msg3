@@ -85,6 +85,11 @@ def settings_cashiers_page(request: Request):
     return templates.TemplateResponse("settings_cashiers.html", {"request": request})
 
 
+@router.get("/settings/kitchen-screens")
+def settings_kitchen_screens_page(request: Request):
+    return templates.TemplateResponse("settings_kitchen_screens.html", {"request": request})
+
+
 @router.get("/kitchen/{slug}")
 def kitchen_screen_page(request: Request, slug: str):
     with get_connection() as conn:

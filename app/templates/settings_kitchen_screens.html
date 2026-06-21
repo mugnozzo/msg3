@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Schermate cucina - MSG 3.0{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/css/settings.css">{% endblock %}
+{% block content %}
+<section class="settings-kitchen-screens">
+  <div class="settings-header">
+    <div>
+      <h1>Schermate cucina</h1>
+      <p class="page-subtitle">Crea schermate operative e scegli quali prodotti mostrare.</p>
+    </div>
+    <button id="new-screen" class="primary">Nuova schermata</button>
+  </div>
+
+  <div class="settings-layout">
+    <section>
+      <table class="table" id="screens-table">
+        <thead>
+          <tr>
+            <th>Ordine</th>
+            <th>Nome</th>
+            <th>Slug</th>
+            <th>Prodotti</th>
+            <th>Attiva</th>
+            <th>Link</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <aside class="editor-panel">
+      <h2 id="editor-title">Nuova schermata</h2>
+      <form id="screen-form">
+        <input type="hidden" id="screen-id">
+
+        <label>Nome
+          <input id="screen-name" required placeholder="es. Grill">
+        </label>
+
+        <label>Slug
+          <input id="screen-slug" required placeholder="es. grill">
+        </label>
+
+        <label>Ordine
+          <input id="screen-sort" type="number" value="0">
+        </label>
+
+        <label class="check-row">
+          <input id="screen-active" type="checkbox" checked>
+          Attiva
+        </label>
+
+        <fieldset>
+          <legend>Prodotti visibili</legend>
+          <div id="product-checkboxes" class="checks tall-checks"></div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit" class="primary">Salva</button>
+          <button type="button" id="reset-form">Annulla</button>
+          <button type="button" id="delete-screen" class="danger" hidden>Elimina</button>
+        </div>
+        <p id="settings-status" class="status"></p>
+      </form>
+    </aside>
+  </div>
+</section>
+<script src="/static/js/settings-kitchen-screens.js"></script>
+{% endblock %}

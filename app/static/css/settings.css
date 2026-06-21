@@ -100,3 +100,23 @@ code {
   object-fit: contain;
   display: block;
 }
+
+.tall-checks {
+  max-height: 28rem;
+  overflow: auto;
+  padding-right: .25rem;
+}
+
+.tall-checks label {
+  justify-content: flex-start;
+}
+
+.tall-checks small {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+button.danger {
+  border-color: #b42318;
+  color: #b42318;
+}
