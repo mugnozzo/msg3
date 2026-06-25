@@ -1,0 +1,109 @@
+.stats-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+
+.filters-card,
+.summary-card,
+.stats-section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: .8rem;
+}
+
+.filter-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  font-weight: 700;
+}
+
+.filter-grid input,
+.filter-grid select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .55rem .7rem;
+  font: inherit;
+  background: #fff;
+}
+
+.inline-field {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+
+.inline-field input[type="datetime-local"] {
+  min-width: 0;
+}
+
+.checkbox-label {
+  flex: none !important;
+  flex-direction: row !important;
+  align-items: center;
+  white-space: nowrap;
+  font-weight: 600 !important;
+}
+
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  margin-top: 1rem;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: .8rem;
+}
+
+.summary-card span {
+  display: block;
+  color: var(--muted);
+  font-size: .95rem;
+}
+
+.summary-card strong {
+  display: block;
+  margin-top: .35rem;
+  font-size: 1.5rem;
+}
+
+.stats-section h2 {
+  margin-top: 0;
+  margin-bottom: .75rem;
+}
+
+.compact-table th,
+.compact-table td {
+  padding: .55rem .65rem;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .95em;
+}
+
+@media (max-width: 700px) {
+  .inline-field {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -63,6 +63,11 @@ def orders_page(request: Request):
     return templates.TemplateResponse("orders.html", {"request": request})
 
 
+@router.get("/stats")
+def stats_page(request: Request):
+    return templates.TemplateResponse("stats.html", {"request": request})
+
+
 @router.get("/printers/test")
 def printers_test_page(request: Request):
     with get_connection() as conn:

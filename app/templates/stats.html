@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Statistiche - MSG 3.0{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/css/stats.css">{% endblock %}
+{% block content %}
+<section class="stats-page">
+  <div class="page-header">
+    <h1>Statistiche</h1>
+    <p class="page-subtitle">Incasso, ordini e prodotti venduti con filtri per periodo, testo, categoria, prodotto, cassa e menu.</p>
+  </div>
+
+  <form id="stats-filters" class="filters-card">
+    <div class="filter-grid">
+      <label>
+        Inizio
+        <input id="start" name="start" type="datetime-local" step="1">
+      </label>
+      <label>
+        Fine
+        <div class="inline-field">
+          <input id="end" name="end" type="datetime-local" step="1">
+          <label class="checkbox-label"><input id="end-now" type="checkbox" checked> adesso</label>
+        </div>
+      </label>
+      <label>
+        Testo
+        <input name="q" type="search" placeholder="nome, slug, sigla, categoria...">
+      </label>
+      <label>
+        Raggruppa
+        <select name="group_by">
+          <option value="day">Per serata/giorno</option>
+          <option value="hour">Per ora</option>
+          <option value="cashier">Per cassa</option>
+          <option value="category">Per categoria</option>
+          <option value="none">Nessun raggruppamento</option>
+        </select>
+      </label>
+      <label>
+        Categoria
+        <select name="category_id" id="category-filter"><option value="">Tutte</option></select>
+      </label>
+      <label>
+        Prodotto
+        <select name="product_id" id="product-filter"><option value="">Tutti</option></select>
+      </label>
+      <label>
+        Cassa
+        <select name="cashier_id" id="cashier-filter"><option value="">Tutte</option></select>
+      </label>
+      <label>
+        Menu
+        <select name="menu_id" id="menu-filter"><option value="">Tutti</option></select>
+      </label>
+    </div>
+    <div class="filter-actions">
+      <button class="primary" type="submit">Aggiorna</button>
+      <button type="button" id="today-button">Oggi</button>
+      <button type="button" id="clear-button">Azzera filtri</button>
+      <span class="status" id="stats-status"></span>
+    </div>
+  </form>
+
+  <section class="summary-grid" aria-label="Riepilogo statistiche">
+    <article class="summary-card"><span>Incasso</span><strong id="summary-total">€ 0,00</strong></article>
+    <article class="summary-card"><span>Ordini</span><strong id="summary-orders">0</strong></article>
+    <article class="summary-card"><span>Prodotti venduti</span><strong id="summary-items">0</strong></article>
+    <article class="summary-card"><span>Periodo</span><strong id="summary-range">—</strong></article>
+  </section>
+
+  <section class="stats-section" id="groups-section">
+    <h2>Ripartizione</h2>
+    <table class="table compact-table" id="groups-table">
+      <thead><tr><th>Periodo/gruppo</th><th>Ordini</th><th>Pezzi</th><th>Incasso</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="stats-section">
+    <h2>Prodotti venduti</h2>
+    <table class="table compact-table" id="products-table">
+      <thead><tr><th>Categoria</th><th>Prodotto</th><th>Slug</th><th>Pezzi</th><th>Prezzo medio</th><th>Incasso</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</section>
+<script src="/static/js/stats.js"></script>
+{% endblock %}

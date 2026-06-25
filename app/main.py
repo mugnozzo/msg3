@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.db.database import init_db
-from app.routes import api_cashiers, api_kitchen_screens, api_meta, api_orders, api_printers, api_products, pages
+from app.routes import api_cashiers, api_kitchen_screens, api_meta, api_orders, api_printers, api_products, api_stats, pages
 
 app = FastAPI(title="Mugnozzo Sagra Gizmo 3.0")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -22,3 +22,4 @@ app.include_router(api_kitchen_screens.router)
 app.include_router(api_meta.router)
 app.include_router(api_orders.router)
 app.include_router(api_printers.router)
+app.include_router(api_stats.router)
