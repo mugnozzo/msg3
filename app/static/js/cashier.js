@@ -3,6 +3,8 @@ const menu = cashierRoot.dataset.menu;
 const cashierId = Number(cashierRoot.dataset.cashierId || 1);
 const cart = new Map();
 let products = [];
+let visibleCategoryNames = new Set();
+const displayOptions = { name: true, icon: true, price: true };
 
 const money = cents => `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
 
@@ -22,25 +24,95 @@ function compareProductsByMenuOrder(a, b) {
 async function loadProducts() {
   const response = await fetch(`/api/products?menu=${encodeURIComponent(menu)}`);
   products = await response.json();
+  visibleCategoryNames = new Set(getCategories().map(category => category.name));
+  renderCategoryFilters();
   renderProducts();
+}
+
+function normalizeSearch(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function getCategories() {
+  const byName = new Map();
+  for (const product of products) {
+    const name = product.category_name || 'Senza categoria';
+    if (!byName.has(name)) {
+      byName.set(name, {
+        name,
+        sortOrder: numericSortValue(product.category_sort_order),
+        count: 0
+      });
+    }
+    byName.get(name).count += 1;
+  }
+  return [...byName.values()].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, 'it'));
+}
+
+function productMatchesSearch(product, query) {
+  if (!query) return true;
+  return [
+    product.name,
+    product.name_short,
+    product.slug,
+    product.acronym,
+    product.category_name
+  ].some(value => normalizeSearch(value).includes(query));
+}
+
+function getFilteredProducts() {
+  const query = normalizeSearch(document.querySelector('#product-search')?.value);
+  return products.filter(product => {
+    const categoryName = product.category_name || 'Senza categoria';
+    return visibleCategoryNames.has(categoryName) && productMatchesSearch(product, query);
+  });
+}
+
+function renderCategoryFilters() {
+  const target = document.querySelector('#category-filters');
+  if (!target) return;
+  target.innerHTML = getCategories().map(category => `
+    <button type="button" class="category-filter active" data-category-name="${escapeHtml(category.name)}" aria-pressed="true">
+      ${escapeHtml(category.name)} <span>${category.count}</span>
+    </button>
+  `).join('');
+}
+
+function updateDisplayClasses() {
+  cashierRoot.classList.toggle('hide-product-names', !displayOptions.name);
+  cashierRoot.classList.toggle('hide-product-icons', !displayOptions.icon);
+  cashierRoot.classList.toggle('hide-product-prices', !displayOptions.price);
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 }
 
 function renderProducts() {
   const grid = document.querySelector('#product-grid');
-  grid.innerHTML = products.map(product => {
+  const emptyMessage = document.querySelector('#empty-products-message');
+  const filteredProducts = getFilteredProducts();
+  grid.innerHTML = filteredProducts.map(product => {
     const displayName = product.name_short || product.name;
     const imagePath = product.image_path || `/static/img/products/${product.slug}.png`;
-    const fallback = product.acronym || displayName.slice(0, 2).toUpperCase();
+    const fallback = escapeHtml(product.acronym || displayName.slice(0, 2).toUpperCase());
     return `
-      <button class="product-button" data-product-id="${product.id}">
+      <button class="product-button" data-product-id="${product.id}" data-category-name="${escapeHtml(product.category_name || '')}">
         <span class="product-image-wrap">
-          <img class="product-image" src="${imagePath}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${fallback}';">
+          <img class="product-image" src="${escapeHtml(imagePath)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${fallback}';">
         </span>
-        <strong class="name">${displayName}</strong>
+        <strong class="name">${escapeHtml(displayName)}</strong>
         <span class="price">${money(product.price_cents)}</span>
       </button>
     `;
   }).join('');
+  if (emptyMessage) emptyMessage.hidden = filteredProducts.length > 0;
+  updateDisplayClasses();
 }
 
 function addProduct(productId) {
@@ -145,7 +217,60 @@ async function printOrder() {
   }
 }
 
+
+function toggleCashierPanel(toggleButton, panel) {
+  if (!toggleButton || !panel) return;
+  const isOpen = !panel.hidden;
+  panel.hidden = isOpen;
+  toggleButton.classList.toggle('active', !isOpen);
+  toggleButton.setAttribute('aria-expanded', String(!isOpen));
+}
+
+function handleCashierToolbarToggle(event) {
+  const categoryPanelToggle = event.target.closest('#category-panel-toggle');
+  if (categoryPanelToggle) {
+    toggleCashierPanel(categoryPanelToggle, document.querySelector('#category-filter-panel'));
+    return true;
+  }
+
+  const displayPanelToggle = event.target.closest('#display-panel-toggle');
+  if (displayPanelToggle) {
+    toggleCashierPanel(displayPanelToggle, document.querySelector('#display-options-panel'));
+    return true;
+  }
+
+  return false;
+}
+
 document.addEventListener('click', event => {
+  if (handleCashierToolbarToggle(event)) return;
+
+  const categoryButton = event.target.closest('[data-category-name].category-filter');
+  if (categoryButton) {
+    const categoryName = categoryButton.dataset.categoryName;
+    if (visibleCategoryNames.has(categoryName)) {
+      visibleCategoryNames.delete(categoryName);
+      categoryButton.classList.remove('active');
+      categoryButton.setAttribute('aria-pressed', 'false');
+    } else {
+      visibleCategoryNames.add(categoryName);
+      categoryButton.classList.add('active');
+      categoryButton.setAttribute('aria-pressed', 'true');
+    }
+    renderProducts();
+    return;
+  }
+
+  const displayButton = event.target.closest('[data-display-option]');
+  if (displayButton) {
+    const option = displayButton.dataset.displayOption;
+    displayOptions[option] = !displayOptions[option];
+    displayButton.classList.toggle('active', displayOptions[option]);
+    displayButton.setAttribute('aria-pressed', String(displayOptions[option]));
+    updateDisplayClasses();
+    return;
+  }
+
   const productButton = event.target.closest('[data-product-id]');
   if (productButton) addProduct(Number(productButton.dataset.productId));
 
@@ -165,8 +290,14 @@ document.addEventListener('click', event => {
   }
 });
 
+function setupCashierFrontendControls() {
+  const searchInput = document.querySelector('#product-search');
+  if (searchInput) searchInput.addEventListener('input', renderProducts);
+}
+
 document.querySelector('#paid-input').addEventListener('input', updateChange);
 document.querySelector('#print-order').addEventListener('click', printOrder);
 document.querySelector('#clear-order').addEventListener('click', () => { cart.clear(); renderCart(); });
+setupCashierFrontendControls();
 
 loadProducts().then(renderCart);

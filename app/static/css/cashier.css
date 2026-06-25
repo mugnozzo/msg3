@@ -11,7 +11,6 @@
 }
 
 .product-button {
-  min-height: 110px;
   display: grid;
   gap: 0;
   align-content: space-between;
@@ -113,4 +112,112 @@
   border: 1px solid var(--border);
   border-radius: .7rem;
   font: inherit;
+}
+
+.cashier-toolbar-toggle.active,
+.category-filter.active,
+.display-option.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.cashier-filters {
+  display: grid;
+  gap: .55rem;
+  margin-bottom: .75rem;
+}
+
+.product-search-label {
+  display: grid;
+  gap: .25rem;
+  font-weight: 700;
+}
+
+.product-search-label input {
+  width: 100%;
+  padding: .7rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  background: var(--panel);
+  color: var(--text);
+}
+
+.cashier-filter-panel {
+  display: grid;
+  gap: .4rem;
+  padding: .6rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.cashier-filter-panel[hidden] {
+  display: none;
+}
+
+.filter-panel-title {
+  font-size: .9rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.category-filters,
+.display-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.category-filter,
+.display-option {
+  padding: .45rem .65rem;
+}
+
+.category-filter span {
+  opacity: .75;
+  font-weight: 600;
+}
+
+.empty-products-message {
+  color: var(--muted);
+  padding: 1rem;
+  background: var(--panel);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.cashier.hide-product-icons .product-image-wrap,
+.cashier.hide-product-names .product-button .name,
+.cashier.hide-product-prices .product-button .price {
+  display: none;
+}
+
+.cashier.hide-product-icons .product-button {
+  min-height: 72px;
+}
+
+.cashier.hide-product-icons.hide-product-prices .product-button {
+  min-height: 56px;
+}
+
+.cashier.hide-product-names.hide-product-icons .product-button,
+.cashier.hide-product-names.hide-product-prices .product-button {
+  align-content: center;
+}
+
+.cashier.hide-product-names.hide-product-icons.hide-product-prices .product-button::after {
+  content: attr(data-product-id);
+  color: var(--muted);
+}
+
+@media (max-width: 860px) {
+  .cashier {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-panel {
+    position: static;
+  }
 }
