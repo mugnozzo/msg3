@@ -1,6 +1,7 @@
 /data/msg.sqlite3*
 /data/printer-output.bin
 /data/seed.json
+/data/seed-backup*json
 app/static/img/
 __pycache__/
 .venv/
