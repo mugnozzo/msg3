@@ -48,6 +48,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--panel);
+  word-break: break-word;
 }
 
 .kitchen-image-wrap {
