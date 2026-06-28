@@ -26,6 +26,8 @@ async function loadProducts() {
   products = await response.json();
   visibleCategoryNames = new Set(getCategories().map(category => category.name));
   renderCategoryFilters();
+  syncCategoryFilterButtons();
+  syncDisplayOptionButtons();
   renderProducts();
 }
 
@@ -78,10 +80,46 @@ function renderCategoryFilters() {
   `).join('');
 }
 
+function syncCategoryFilterButtons() {
+  document.querySelectorAll('.category-filter[data-category-name]').forEach(button => {
+    const isActive = visibleCategoryNames.has(button.dataset.categoryName);
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-pressed', String(isActive));
+  });
+  syncCategoryToggleAllButton();
+}
+
+function syncCategoryToggleAllButton() {
+  const button = document.querySelector('#toggle-all-categories');
+  if (!button) return;
+  const categories = getCategories();
+  const allSelected = categories.length > 0 && categories.every(category => visibleCategoryNames.has(category.name));
+  button.textContent = allSelected ? 'Deseleziona tutto' : 'Seleziona tutto';
+  button.setAttribute('aria-pressed', String(allSelected));
+}
+
+function syncDisplayOptionButtons() {
+  document.querySelectorAll('[data-display-option]').forEach(button => {
+    const option = button.dataset.displayOption;
+    button.classList.toggle('active', Boolean(displayOptions[option]));
+    button.setAttribute('aria-pressed', String(Boolean(displayOptions[option])));
+  });
+  syncDisplayToggleAllButton();
+}
+
+function syncDisplayToggleAllButton() {
+  const button = document.querySelector('#toggle-all-display-options');
+  if (!button) return;
+  const allSelected = Object.values(displayOptions).every(Boolean);
+  button.textContent = allSelected ? 'Deseleziona tutto' : 'Seleziona tutto';
+  button.setAttribute('aria-pressed', String(allSelected));
+}
+
 function updateDisplayClasses() {
   cashierRoot.classList.toggle('hide-product-names', !displayOptions.name);
   cashierRoot.classList.toggle('hide-product-icons', !displayOptions.icon);
   cashierRoot.classList.toggle('hide-product-prices', !displayOptions.price);
+  syncDisplayOptionButtons();
 }
 
 function escapeHtml(value) {
@@ -266,15 +304,9 @@ function toggleCashierPanel(toggleButton, panel) {
 }
 
 function handleCashierToolbarToggle(event) {
-  const categoryPanelToggle = event.target.closest('#category-panel-toggle');
-  if (categoryPanelToggle) {
-    toggleCashierPanel(categoryPanelToggle, document.querySelector('#category-filter-panel'));
-    return true;
-  }
-
-  const displayPanelToggle = event.target.closest('#display-panel-toggle');
-  if (displayPanelToggle) {
-    toggleCashierPanel(displayPanelToggle, document.querySelector('#display-options-panel'));
+  const toolsToggle = event.target.closest('#cashier-tools-toggle');
+  if (toolsToggle) {
+    toggleCashierPanel(toolsToggle, document.querySelector('#cashier-tools-panel'));
     return true;
   }
 
@@ -284,19 +316,36 @@ function handleCashierToolbarToggle(event) {
 document.addEventListener('click', event => {
   if (handleCashierToolbarToggle(event)) return;
 
+  const categoryToggleAllButton = event.target.closest('#toggle-all-categories');
+  if (categoryToggleAllButton) {
+    const categories = getCategories();
+    const allSelected = categories.length > 0 && categories.every(category => visibleCategoryNames.has(category.name));
+    visibleCategoryNames = allSelected ? new Set() : new Set(categories.map(category => category.name));
+    syncCategoryFilterButtons();
+    renderProducts();
+    return;
+  }
+
   const categoryButton = event.target.closest('[data-category-name].category-filter');
   if (categoryButton) {
     const categoryName = categoryButton.dataset.categoryName;
     if (visibleCategoryNames.has(categoryName)) {
       visibleCategoryNames.delete(categoryName);
-      categoryButton.classList.remove('active');
-      categoryButton.setAttribute('aria-pressed', 'false');
     } else {
       visibleCategoryNames.add(categoryName);
-      categoryButton.classList.add('active');
-      categoryButton.setAttribute('aria-pressed', 'true');
     }
+    syncCategoryFilterButtons();
     renderProducts();
+    return;
+  }
+
+  const displayToggleAllButton = event.target.closest('#toggle-all-display-options');
+  if (displayToggleAllButton) {
+    const allSelected = Object.values(displayOptions).every(Boolean);
+    Object.keys(displayOptions).forEach(option => {
+      displayOptions[option] = !allSelected;
+    });
+    updateDisplayClasses();
     return;
   }
 
@@ -304,8 +353,6 @@ document.addEventListener('click', event => {
   if (displayButton) {
     const option = displayButton.dataset.displayOption;
     displayOptions[option] = !displayOptions[option];
-    displayButton.classList.toggle('active', displayOptions[option]);
-    displayButton.setAttribute('aria-pressed', String(displayOptions[option]));
     updateDisplayClasses();
     return;
   }

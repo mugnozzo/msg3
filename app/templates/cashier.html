@@ -2,11 +2,8 @@
 {% block title %}{{ cashier_name }} - MSG 3.0{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/css/cashier.css">{% endblock %}
 {% block topbar_controls %}
-<button id="category-panel-toggle" class="topbar-button cashier-toolbar-toggle" type="button" aria-expanded="false" aria-controls="category-filter-panel" title="Mostra/nascondi categorie">
+<button id="cashier-tools-toggle" class="topbar-button cashier-toolbar-toggle" type="button" aria-expanded="false" aria-controls="cashier-tools-panel" title="Mostra/nascondi ricerca, categorie e opzioni prodotti">
   <span aria-hidden="true">▦</span>
-</button>
-<button id="display-panel-toggle" class="topbar-button cashier-toolbar-toggle" type="button" aria-expanded="false" aria-controls="display-options-panel" title="Opzioni visualizzazione prodotti">
-  <span aria-hidden="true">◱</span>
 </button>
 {% endblock %}
 {% block content %}
@@ -15,19 +12,25 @@
     <h1>{{ cashier_name }}</h1>
     <p class="page-subtitle">Menu: <strong>{{ menu_name }}</strong> · Stampante: <strong>{{ printer_name }}</strong></p>
 
-    <section class="cashier-filters" aria-label="Filtri prodotti">
+    <section id="cashier-tools-panel" class="cashier-filters" aria-label="Filtri prodotti" hidden>
       <label class="product-search-label">
         Cerca prodotto
         <input id="product-search" type="search" autocomplete="off" placeholder="Nome, slug, sigla, categoria...">
       </label>
 
-      <div id="category-filter-panel" class="cashier-filter-panel" hidden>
-        <div class="filter-panel-title">Categorie visibili</div>
+      <div id="category-filter-panel" class="cashier-filter-panel">
+        <div class="filter-panel-header">
+          <div class="filter-panel-title">Categorie visibili</div>
+          <button type="button" id="toggle-all-categories" class="filter-toggle-all" aria-pressed="true">Deseleziona tutto</button>
+        </div>
         <div id="category-filters" class="category-filters"></div>
       </div>
 
-      <div id="display-options-panel" class="cashier-filter-panel" hidden>
-        <div class="filter-panel-title">Elementi nei pulsanti</div>
+      <div id="display-options-panel" class="cashier-filter-panel">
+        <div class="filter-panel-header">
+          <div class="filter-panel-title">Elementi nei pulsanti</div>
+          <button type="button" id="toggle-all-display-options" class="filter-toggle-all" aria-pressed="true">Deseleziona tutto</button>
+        </div>
         <div class="display-options" role="group" aria-label="Elementi visibili nei pulsanti prodotto">
           <button type="button" class="display-option active" data-display-option="name" aria-pressed="true">Nome</button>
           <button type="button" class="display-option active" data-display-option="icon" aria-pressed="true">Icona</button>
