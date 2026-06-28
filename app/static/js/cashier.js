@@ -4,6 +4,8 @@ const cashierId = Number(cashierRoot.dataset.cashierId || 1);
 const cart = new Map();
 let products = [];
 let visibleCategoryNames = new Set();
+let keyboardModeEnabled = false;
+let keyboardSelectedProductId = null;
 const displayOptions = { name: true, icon: true, price: true };
 
 const money = cents => `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
@@ -32,7 +34,31 @@ async function loadProducts() {
 }
 
 function normalizeSearch(value) {
-  return String(value || '').trim().toLowerCase();
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function fuzzyScore(text, query) {
+  const haystack = normalizeSearch(text);
+  const needle = normalizeSearch(query);
+  if (!needle) return 0;
+  if (!haystack) return null;
+
+  const exactIndex = haystack.indexOf(needle);
+  if (exactIndex >= 0) return exactIndex;
+
+  let searchFrom = 0;
+  let score = 0;
+  for (const char of needle) {
+    const foundAt = haystack.indexOf(char, searchFrom);
+    if (foundAt < 0) return null;
+    score += foundAt - searchFrom + 1;
+    searchFrom = foundAt + 1;
+  }
+  return score + haystack.length;
 }
 
 function getCategories() {
@@ -51,22 +77,41 @@ function getCategories() {
   return [...byName.values()].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, 'it'));
 }
 
-function productMatchesSearch(product, query) {
-  if (!query) return true;
+function getProductSearchValues(product) {
   return [
     product.name,
     product.name_short,
     product.slug,
     product.acronym,
     product.category_name
-  ].some(value => normalizeSearch(value).includes(query));
+  ];
+}
+
+function getProductSearchScore(product, query) {
+  if (!query) return 0;
+  const scores = getProductSearchValues(product)
+    .map(value => fuzzyScore(value, query))
+    .filter(score => score !== null);
+  return scores.length > 0 ? Math.min(...scores) : null;
+}
+
+function productMatchesSearch(product, query) {
+  return getProductSearchScore(product, query) !== null;
 }
 
 function getFilteredProducts() {
   const query = normalizeSearch(document.querySelector('#product-search')?.value);
-  return products.filter(product => {
+  const filteredProducts = products.filter(product => {
     const categoryName = product.category_name || 'Senza categoria';
     return visibleCategoryNames.has(categoryName) && productMatchesSearch(product, query);
+  });
+
+  if (!query) return filteredProducts;
+
+  return filteredProducts.sort((a, b) => {
+    const scoreA = getProductSearchScore(a, query) ?? Number.MAX_SAFE_INTEGER;
+    const scoreB = getProductSearchScore(b, query) ?? Number.MAX_SAFE_INTEGER;
+    return scoreA - scoreB || compareProductsByMenuOrder(a, b);
   });
 }
 
@@ -145,6 +190,7 @@ function updateProductButtonsFromCart() {
     const productId = Number(button.dataset.productId);
     const quantity = getCartQuantity(productId);
     button.classList.toggle('in-cart', quantity > 0);
+    button.classList.toggle('keyboard-selected', productId === keyboardSelectedProductId);
     button.dataset.cartQuantity = String(quantity);
 
     const currentBadge = button.querySelector('.cart-quantity-badge');
@@ -161,18 +207,33 @@ function updateProductButtonsFromCart() {
   });
 }
 
+function getKeyboardSelectedProduct(filteredProducts = getFilteredProducts()) {
+  if (filteredProducts.length === 0) return null;
+  return filteredProducts.find(product => product.id === keyboardSelectedProductId) || filteredProducts[0];
+}
+
+function syncKeyboardSelection(filteredProducts = getFilteredProducts()) {
+  if (!keyboardModeEnabled || filteredProducts.length === 0) {
+    keyboardSelectedProductId = null;
+    return;
+  }
+  keyboardSelectedProductId = getKeyboardSelectedProduct(filteredProducts).id;
+}
+
 function renderProducts() {
   const grid = document.querySelector('#product-grid');
   const emptyMessage = document.querySelector('#empty-products-message');
   const filteredProducts = getFilteredProducts();
+  syncKeyboardSelection(filteredProducts);
   grid.innerHTML = filteredProducts.map(product => {
     const displayName = product.name_short || product.name;
     const imagePath = product.image_path || `/static/img/products/${product.slug}.png`;
     const fallback = escapeHtml(product.acronym || displayName.slice(0, 2).toUpperCase());
     const quantity = getCartQuantity(product.id);
     const inCartClass = quantity > 0 ? ' in-cart' : '';
+    const keyboardSelectedClass = product.id === keyboardSelectedProductId ? ' keyboard-selected' : '';
     return `
-      <button class="product-button${inCartClass}" data-product-id="${product.id}" data-category-name="${escapeHtml(product.category_name || '')}" data-cart-quantity="${quantity}">
+      <button class="product-button${inCartClass}${keyboardSelectedClass}" data-product-id="${product.id}" data-category-name="${escapeHtml(product.category_name || '')}" data-cart-quantity="${quantity}">
         <span class="product-image-wrap">
           <img class="product-image" src="${escapeHtml(imagePath)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${fallback}';">
         </span>
@@ -303,10 +364,53 @@ function toggleCashierPanel(toggleButton, panel) {
   toggleButton.setAttribute('aria-expanded', String(!isOpen));
 }
 
+function setCashierToolsVisible(visible) {
+  const panel = document.querySelector('#cashier-tools-panel');
+  const toggle = document.querySelector('#cashier-tools-toggle');
+  if (!panel || !toggle) return;
+  panel.hidden = !visible;
+  toggle.classList.toggle('active', visible);
+  toggle.setAttribute('aria-expanded', String(visible));
+}
+
+function clearKeyboardSearch() {
+  const searchInput = document.querySelector('#product-search');
+  if (!searchInput) return;
+  if (searchInput.value) {
+    searchInput.value = '';
+    renderProducts();
+  }
+}
+
+function setKeyboardMode(enabled) {
+  keyboardModeEnabled = enabled;
+  cashierRoot.classList.toggle('keyboard-mode-active', enabled);
+
+  const toggle = document.querySelector('#keyboard-mode-toggle');
+  if (toggle) {
+    toggle.classList.toggle('active', enabled);
+    toggle.setAttribute('aria-pressed', String(enabled));
+  }
+
+  if (enabled) {
+    setCashierToolsVisible(true);
+    document.querySelector('#product-search')?.focus();
+  } else {
+    keyboardSelectedProductId = null;
+  }
+  renderProducts();
+}
+
 function handleCashierToolbarToggle(event) {
   const toolsToggle = event.target.closest('#cashier-tools-toggle');
   if (toolsToggle) {
     toggleCashierPanel(toolsToggle, document.querySelector('#cashier-tools-panel'));
+    return true;
+  }
+
+  const keyboardToggle = event.target.closest('#keyboard-mode-toggle');
+  if (keyboardToggle) {
+    setKeyboardMode(!keyboardModeEnabled);
     return true;
   }
 
@@ -380,6 +484,109 @@ function setupCashierFrontendControls() {
   const searchInput = document.querySelector('#product-search');
   if (searchInput) searchInput.addEventListener('input', renderProducts);
 }
+
+
+function isTypingInEditableField(event) {
+  const target = event.target;
+  if (!target) return false;
+  if (target === document.querySelector('#product-search')) return false;
+  return ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
+}
+
+function getKeyboardActionProduct() {
+  return getKeyboardSelectedProduct();
+}
+
+function moveKeyboardSelection(direction) {
+  const filteredProducts = getFilteredProducts();
+  if (filteredProducts.length === 0) {
+    keyboardSelectedProductId = null;
+    renderProducts();
+    return;
+  }
+
+  const currentIndex = Math.max(0, filteredProducts.findIndex(product => product.id === keyboardSelectedProductId));
+  const nextIndex = (currentIndex + direction + filteredProducts.length) % filteredProducts.length;
+  keyboardSelectedProductId = filteredProducts[nextIndex].id;
+  renderProducts();
+  document.querySelector(`.product-button[data-product-id="${keyboardSelectedProductId}"]`)?.scrollIntoView({block: 'nearest'});
+}
+
+function handleKeyboardModeKeydown(event) {
+  if (!keyboardModeEnabled || isTypingInEditableField(event)) return;
+
+  const searchInput = document.querySelector('#product-search');
+  const key = event.key;
+
+  if (event.ctrlKey && key === 'Enter') {
+    event.preventDefault();
+    clearKeyboardSearch();
+    printOrder();
+    return;
+  }
+
+  if (key === 'Escape') {
+    event.preventDefault();
+    clearKeyboardSearch();
+    searchInput?.focus();
+    return;
+  }
+
+  if (key === 'ArrowDown' || key === 'ArrowRight') {
+    event.preventDefault();
+    moveKeyboardSelection(1);
+    return;
+  }
+
+  if (key === 'ArrowUp' || key === 'ArrowLeft') {
+    event.preventDefault();
+    moveKeyboardSelection(-1);
+    return;
+  }
+
+  if (key === 'Enter') {
+    event.preventDefault();
+    const product = getKeyboardActionProduct();
+    if (product) addProduct(product.id);
+    clearKeyboardSearch();
+    return;
+  }
+
+  if (key === '-') {
+    event.preventDefault();
+    const product = getKeyboardActionProduct();
+    if (product) decrementProduct(product.id);
+    clearKeyboardSearch();
+    return;
+  }
+
+  if (key.toLowerCase() === 'x' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+    event.preventDefault();
+    const product = getKeyboardActionProduct();
+    if (product) removeProduct(product.id);
+    return;
+  }
+
+  if (key === 'Backspace') {
+    event.preventDefault();
+    if (searchInput) {
+      searchInput.value = searchInput.value.slice(0, -1);
+      renderProducts();
+    }
+    return;
+  }
+
+  if (key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
+    event.preventDefault();
+    if (searchInput) {
+      searchInput.value += key;
+      renderProducts();
+      searchInput.focus();
+    }
+  }
+}
+
+document.addEventListener('keydown', handleKeyboardModeKeydown);
 
 document.querySelector('#paid-input').addEventListener('input', updateChange);
 document.querySelector('#print-order').addEventListener('click', printOrder);

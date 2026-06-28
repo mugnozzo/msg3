@@ -5,6 +5,9 @@
 <button id="cashier-tools-toggle" class="topbar-button cashier-toolbar-toggle" type="button" aria-expanded="false" aria-controls="cashier-tools-panel" title="Mostra/nascondi ricerca, categorie e opzioni prodotti">
   <span aria-hidden="true">▦</span>
 </button>
+<button id="keyboard-mode-toggle" class="topbar-button cashier-toolbar-toggle" type="button" aria-pressed="false" title="Attiva/disattiva modalità tastiera">
+  <span aria-hidden="true">⌨</span>
+</button>
 {% endblock %}
 {% block content %}
 <section class="cashier" data-menu="{{ menu_slug }}" data-cashier-id="{{ cashier_id }}">
@@ -15,7 +18,7 @@
     <section id="cashier-tools-panel" class="cashier-filters" aria-label="Filtri prodotti" hidden>
       <label class="product-search-label">
         Cerca prodotto
-        <input id="product-search" type="search" autocomplete="off" placeholder="Nome, slug, sigla, categoria...">
+        <input id="product-search" type="search" autocomplete="off" placeholder="Digita per cercare, Enter aggiunge, - diminuisce, x rimuove...">
       </label>
 
       <div id="category-filter-panel" class="cashier-filter-panel">
