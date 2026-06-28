@@ -93,6 +93,36 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
+function getCartQuantity(productId) {
+  return cart.get(productId)?.quantity || 0;
+}
+
+function productButtonQuantityBadge(quantity) {
+  if (quantity <= 0) return '';
+  return `<span class="cart-quantity-badge" aria-label="Quantità nel carrello: ${quantity}">${quantity}</span>`;
+}
+
+function updateProductButtonsFromCart() {
+  document.querySelectorAll('.product-button[data-product-id]').forEach(button => {
+    const productId = Number(button.dataset.productId);
+    const quantity = getCartQuantity(productId);
+    button.classList.toggle('in-cart', quantity > 0);
+    button.dataset.cartQuantity = String(quantity);
+
+    const currentBadge = button.querySelector('.cart-quantity-badge');
+    if (quantity > 0) {
+      if (currentBadge) {
+        currentBadge.textContent = String(quantity);
+        currentBadge.setAttribute('aria-label', `Quantità nel carrello: ${quantity}`);
+      } else {
+        button.insertAdjacentHTML('beforeend', productButtonQuantityBadge(quantity));
+      }
+    } else if (currentBadge) {
+      currentBadge.remove();
+    }
+  });
+}
+
 function renderProducts() {
   const grid = document.querySelector('#product-grid');
   const emptyMessage = document.querySelector('#empty-products-message');
@@ -101,13 +131,16 @@ function renderProducts() {
     const displayName = product.name_short || product.name;
     const imagePath = product.image_path || `/static/img/products/${product.slug}.png`;
     const fallback = escapeHtml(product.acronym || displayName.slice(0, 2).toUpperCase());
+    const quantity = getCartQuantity(product.id);
+    const inCartClass = quantity > 0 ? ' in-cart' : '';
     return `
-      <button class="product-button" data-product-id="${product.id}" data-category-name="${escapeHtml(product.category_name || '')}">
+      <button class="product-button${inCartClass}" data-product-id="${product.id}" data-category-name="${escapeHtml(product.category_name || '')}" data-cart-quantity="${quantity}">
         <span class="product-image-wrap">
           <img class="product-image" src="${escapeHtml(imagePath)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${fallback}';">
         </span>
         <strong class="name">${escapeHtml(displayName)}</strong>
         <span class="price">${money(product.price_cents)}</span>
+        ${productButtonQuantityBadge(quantity)}
       </button>
     `;
   }).join('');
@@ -121,7 +154,7 @@ function addProduct(productId) {
   const current = cart.get(productId) ?? { product, quantity: 0 };
   current.quantity += 1;
   cart.set(productId, current);
-  renderCart();
+  renderCart(productId);
 }
 
 function decrementProduct(productId) {
@@ -155,28 +188,34 @@ function quickPaidValues(totalCents) {
   return [...candidates].filter(v => v > 0).sort((a, b) => a - b).slice(0, 5);
 }
 
-function renderCart() {
+function renderCart(highlightProductId = null) {
   const lines = document.querySelector('#cart-lines');
-  lines.innerHTML = getCartItemsInMenuOrder().map(item => `
-    <div class="cart-line">
-      <div class="cart-product">
-        <strong>${item.product.name_short || item.product.name}</strong>
-        <span>${money(item.product.price_cents)}</span>
+  lines.innerHTML = getCartItemsInMenuOrder().map(item => {
+    const displayName = item.product.name_short || item.product.name;
+    const escapedName = escapeHtml(displayName);
+    const highlightClass = item.product.id === highlightProductId ? ' cart-line-highlight' : '';
+    return `
+      <div class="cart-line${highlightClass}" data-cart-line-product-id="${item.product.id}">
+        <div class="cart-product">
+          <strong>${escapedName}</strong>
+          <span>${money(item.product.price_cents)}</span>
+        </div>
+        <div class="quantity-controls" aria-label="Quantità ${escapedName}">
+          <button type="button" data-decrement-id="${item.product.id}" aria-label="Diminuisci ${escapedName}">−</button>
+          <span class="quantity">${item.quantity}</span>
+          <button type="button" data-increment-id="${item.product.id}" aria-label="Aumenta ${escapedName}">+</button>
+          <button type="button" data-delete-id="${item.product.id}" aria-label="Rimuovi ${escapedName}">×</button>
+        </div>
+        <strong class="line-total">${money(item.product.price_cents * item.quantity)}</strong>
       </div>
-      <div class="quantity-controls" aria-label="Quantità ${item.product.name_short || item.product.name}">
-        <button type="button" data-decrement-id="${item.product.id}" aria-label="Diminuisci ${item.product.name_short || item.product.name}">−</button>
-        <span class="quantity">${item.quantity}</span>
-        <button type="button" data-increment-id="${item.product.id}" aria-label="Aumenta ${item.product.name_short || item.product.name}">+</button>
-        <button type="button" data-delete-id="${item.product.id}" aria-label="Rimuovi ${item.product.name_short || item.product.name}">×</button>
-      </div>
-      <strong class="line-total">${money(item.product.price_cents * item.quantity)}</strong>
-    </div>
-  `).join('') || '<p>Nessun prodotto selezionato.</p>';
+    `;
+  }).join('') || '<p>Nessun prodotto selezionato.</p>';
 
   const total = getTotalCents();
   document.querySelector('#cart-total').textContent = money(total);
   document.querySelector('#quick-paid').innerHTML = quickPaidValues(total).map(v => `<button data-paid="${v}">€ ${v}</button>`).join('');
   updateChange();
+  updateProductButtonsFromCart();
 }
 
 function updateChange() {
