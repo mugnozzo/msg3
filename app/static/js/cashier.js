@@ -82,8 +82,7 @@ function getProductSearchValues(product) {
     product.name,
     product.name_short,
     product.slug,
-    product.acronym,
-    product.category_name
+    product.acronym
   ];
 }
 
@@ -264,6 +263,19 @@ function decrementProduct(productId) {
   renderCart();
 }
 
+function setProductQuantity(productId, quantity) {
+  const product = products.find(item => item.id === productId);
+  if (!product) return;
+  const normalizedQuantity = Math.max(0, Number(quantity) || 0);
+  if (normalizedQuantity <= 0) {
+    cart.delete(productId);
+    renderCart();
+    return;
+  }
+  cart.set(productId, { product, quantity: normalizedQuantity });
+  renderCart(productId);
+}
+
 function removeProduct(productId) {
   cart.delete(productId);
   renderCart();
@@ -364,22 +376,24 @@ function toggleCashierPanel(toggleButton, panel) {
   toggleButton.setAttribute('aria-expanded', String(!isOpen));
 }
 
-function setCashierToolsVisible(visible) {
-  const panel = document.querySelector('#cashier-tools-panel');
-  const toggle = document.querySelector('#cashier-tools-toggle');
+function setCashierSearchVisible(visible) {
+  const panel = document.querySelector('#cashier-search-panel');
+  const toggle = document.querySelector('#cashier-search-toggle');
   if (!panel || !toggle) return;
   panel.hidden = !visible;
   toggle.classList.toggle('active', visible);
   toggle.setAttribute('aria-expanded', String(visible));
 }
 
-function clearKeyboardSearch() {
+function selectFirstKeyboardProduct(filteredProducts = getFilteredProducts()) {
+  keyboardSelectedProductId = filteredProducts.length > 0 ? filteredProducts[0].id : null;
+}
+
+function clearKeyboardSearch({ resetSelection = false } = {}) {
   const searchInput = document.querySelector('#product-search');
-  if (!searchInput) return;
-  if (searchInput.value) {
-    searchInput.value = '';
-    renderProducts();
-  }
+  if (searchInput) searchInput.value = '';
+  if (resetSelection) selectFirstKeyboardProduct();
+  renderProducts();
 }
 
 function setKeyboardMode(enabled) {
@@ -393,7 +407,7 @@ function setKeyboardMode(enabled) {
   }
 
   if (enabled) {
-    setCashierToolsVisible(true);
+    setCashierSearchVisible(true);
     document.querySelector('#product-search')?.focus();
   } else {
     keyboardSelectedProductId = null;
@@ -402,6 +416,12 @@ function setKeyboardMode(enabled) {
 }
 
 function handleCashierToolbarToggle(event) {
+  const searchToggle = event.target.closest('#cashier-search-toggle');
+  if (searchToggle) {
+    toggleCashierPanel(searchToggle, document.querySelector('#cashier-search-panel'));
+    return true;
+  }
+
   const toolsToggle = event.target.closest('#cashier-tools-toggle');
   if (toolsToggle) {
     toggleCashierPanel(toolsToggle, document.querySelector('#cashier-tools-panel'));
@@ -520,14 +540,14 @@ function handleKeyboardModeKeydown(event) {
 
   if (event.ctrlKey && key === 'Enter') {
     event.preventDefault();
-    clearKeyboardSearch();
+    clearKeyboardSearch({ resetSelection: true });
     printOrder();
     return;
   }
 
-  if (key === 'Escape') {
+  if (key === ' ') {
     event.preventDefault();
-    clearKeyboardSearch();
+    clearKeyboardSearch({ resetSelection: true });
     searchInput?.focus();
     return;
   }
@@ -548,7 +568,7 @@ function handleKeyboardModeKeydown(event) {
     event.preventDefault();
     const product = getKeyboardActionProduct();
     if (product) addProduct(product.id);
-    clearKeyboardSearch();
+    clearKeyboardSearch({ resetSelection: false });
     return;
   }
 
@@ -560,10 +580,11 @@ function handleKeyboardModeKeydown(event) {
     return;
   }
 
-  if (key.toLowerCase() === 'x' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+  if (/^[0-9]$/.test(key) && !event.ctrlKey && !event.altKey && !event.metaKey) {
     event.preventDefault();
     const product = getKeyboardActionProduct();
-    if (product) removeProduct(product.id);
+    if (product) setProductQuantity(product.id, Number(key));
+    clearKeyboardSearch();
     return;
   }
 

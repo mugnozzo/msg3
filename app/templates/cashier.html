@@ -2,7 +2,10 @@
 {% block title %}{{ cashier_name }} - MSG 3.0{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/css/cashier.css">{% endblock %}
 {% block topbar_controls %}
-<button id="cashier-tools-toggle" class="topbar-button cashier-toolbar-toggle" type="button" aria-expanded="false" aria-controls="cashier-tools-panel" title="Mostra/nascondi ricerca, categorie e opzioni prodotti">
+<button id="cashier-search-toggle" class="topbar-button cashier-toolbar-toggle" type="button" aria-expanded="false" aria-controls="cashier-search-panel" title="Mostra/nascondi ricerca prodotti">
+  <span aria-hidden="true">⌕</span>
+</button>
+<button id="cashier-tools-toggle" class="topbar-button cashier-toolbar-toggle" type="button" aria-expanded="false" aria-controls="cashier-tools-panel" title="Mostra/nascondi categorie e opzioni prodotti">
   <span aria-hidden="true">▦</span>
 </button>
 <button id="keyboard-mode-toggle" class="topbar-button cashier-toolbar-toggle" type="button" aria-pressed="false" title="Attiva/disattiva modalità tastiera">
@@ -15,12 +18,14 @@
     <h1>{{ cashier_name }}</h1>
     <p class="page-subtitle">Menu: <strong>{{ menu_name }}</strong> · Stampante: <strong>{{ printer_name }}</strong></p>
 
-    <section id="cashier-tools-panel" class="cashier-filters" aria-label="Filtri prodotti" hidden>
+    <section id="cashier-search-panel" class="cashier-filters" aria-label="Ricerca prodotti" hidden>
       <label class="product-search-label">
         Cerca prodotto
-        <input id="product-search" type="search" autocomplete="off" placeholder="Digita per cercare, Enter aggiunge, - diminuisce, x rimuove...">
+        <input id="product-search" type="search" autocomplete="off" placeholder="Digita per cercare, Enter aggiunge, - diminuisce, x rimuove, spazio svuota...">
       </label>
+    </section>
 
+    <section id="cashier-tools-panel" class="cashier-filters" aria-label="Categorie e opzioni prodotti" hidden>
       <div id="category-filter-panel" class="cashier-filter-panel">
         <div class="filter-panel-header">
           <div class="filter-panel-title">Categorie visibili</div>
