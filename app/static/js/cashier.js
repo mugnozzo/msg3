@@ -6,6 +6,7 @@ let products = [];
 let visibleCategoryNames = new Set();
 let keyboardModeEnabled = false;
 let keyboardSelectedProductId = null;
+let lastUpdatedProductId = null;
 const displayOptions = { name: true, icon: true, price: true };
 
 const money = cents => `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
@@ -189,6 +190,7 @@ function updateProductButtonsFromCart() {
     const productId = Number(button.dataset.productId);
     const quantity = getCartQuantity(productId);
     button.classList.toggle('in-cart', quantity > 0);
+    button.classList.toggle('last-updated', productId === lastUpdatedProductId);
     button.classList.toggle('keyboard-selected', productId === keyboardSelectedProductId);
     button.dataset.cartQuantity = String(quantity);
 
@@ -230,9 +232,10 @@ function renderProducts() {
     const fallback = escapeHtml(product.acronym || displayName.slice(0, 2).toUpperCase());
     const quantity = getCartQuantity(product.id);
     const inCartClass = quantity > 0 ? ' in-cart' : '';
+    const lastUpdatedClass = product.id === lastUpdatedProductId ? ' last-updated' : '';
     const keyboardSelectedClass = product.id === keyboardSelectedProductId ? ' keyboard-selected' : '';
     return `
-      <button class="product-button${inCartClass}${keyboardSelectedClass}" data-product-id="${product.id}" data-category-name="${escapeHtml(product.category_name || '')}" data-cart-quantity="${quantity}">
+      <button class="product-button${inCartClass}${lastUpdatedClass}${keyboardSelectedClass}" data-product-id="${product.id}" data-category-name="${escapeHtml(product.category_name || '')}" data-cart-quantity="${quantity}">
         <span class="product-image-wrap">
           <img class="product-image" src="${escapeHtml(imagePath)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${fallback}';">
         </span>
@@ -246,13 +249,22 @@ function renderProducts() {
   updateDisplayClasses();
 }
 
+function setLastUpdatedProduct(productId) {
+  lastUpdatedProductId = productId;
+}
+
+function clearLastUpdatedProduct() {
+  lastUpdatedProductId = null;
+}
+
 function addProduct(productId) {
   const product = products.find(item => item.id === productId);
   if (!product) return;
   const current = cart.get(productId) ?? { product, quantity: 0 };
   current.quantity += 1;
   cart.set(productId, current);
-  renderCart(productId);
+  setLastUpdatedProduct(productId);
+  renderCart();
 }
 
 function decrementProduct(productId) {
@@ -260,6 +272,7 @@ function decrementProduct(productId) {
   if (!current) return;
   current.quantity -= 1;
   if (current.quantity <= 0) cart.delete(productId);
+  setLastUpdatedProduct(productId);
   renderCart();
 }
 
@@ -269,15 +282,18 @@ function setProductQuantity(productId, quantity) {
   const normalizedQuantity = Math.max(0, Number(quantity) || 0);
   if (normalizedQuantity <= 0) {
     cart.delete(productId);
+    setLastUpdatedProduct(productId);
     renderCart();
     return;
   }
   cart.set(productId, { product, quantity: normalizedQuantity });
-  renderCart(productId);
+  setLastUpdatedProduct(productId);
+  renderCart();
 }
 
 function removeProduct(productId) {
   cart.delete(productId);
+  setLastUpdatedProduct(productId);
   renderCart();
 }
 
@@ -299,14 +315,14 @@ function quickPaidValues(totalCents) {
   return [...candidates].filter(v => v > 0).sort((a, b) => a - b).slice(0, 5);
 }
 
-function renderCart(highlightProductId = null) {
+function renderCart() {
   const lines = document.querySelector('#cart-lines');
   lines.innerHTML = getCartItemsInMenuOrder().map(item => {
     const displayName = item.product.name_short || item.product.name;
     const escapedName = escapeHtml(displayName);
-    const highlightClass = item.product.id === highlightProductId ? ' cart-line-highlight' : '';
+    const lastUpdatedClass = item.product.id === lastUpdatedProductId ? ' cart-line-last-updated' : '';
     return `
-      <div class="cart-line${highlightClass}" data-cart-line-product-id="${item.product.id}">
+      <div class="cart-line${lastUpdatedClass}" data-cart-line-product-id="${item.product.id}">
         <div class="cart-product">
           <strong>${escapedName}</strong>
           <span>${money(item.product.price_cents)}</span>
@@ -357,6 +373,7 @@ async function printOrder() {
     if (!response.ok) throw new Error(await response.text());
     const result = await response.json();
     cart.clear();
+    clearLastUpdatedProduct();
     document.querySelector('#paid-input').value = '';
     renderCart();
     status.textContent = `Ordine #${result.order_number} stampato.`;
@@ -611,7 +628,11 @@ document.addEventListener('keydown', handleKeyboardModeKeydown);
 
 document.querySelector('#paid-input').addEventListener('input', updateChange);
 document.querySelector('#print-order').addEventListener('click', printOrder);
-document.querySelector('#clear-order').addEventListener('click', () => { cart.clear(); renderCart(); });
+document.querySelector('#clear-order').addEventListener('click', () => {
+  cart.clear();
+  clearLastUpdatedProduct();
+  renderCart();
+});
 setupCashierFrontendControls();
 
 loadProducts().then(renderCart);
