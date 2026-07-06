@@ -105,7 +105,10 @@
   object-fit: contain;
   display: block;
 }
-.product-button .name { font-size: 1.05rem; }
+.product-button .name {
+  font-size: 1.05rem;
+  line-height: 1rem;
+}
 .product-button .price { color: var(--muted); }
 
 .cart-panel {
