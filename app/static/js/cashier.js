@@ -25,7 +25,7 @@ function compareProductsByMenuOrder(a, b) {
 }
 
 async function loadProducts() {
-  const response = await fetch(`/api/products?menu=${encodeURIComponent(menu)}`);
+  const response = await fetch(`/api/products?menu=${encodeURIComponent(menu)}&include_disabled=true`);
   products = await response.json();
   visibleCategoryNames = new Set(getCategories().map(category => category.name));
   renderCategoryFilters();
@@ -180,6 +180,10 @@ function getCartQuantity(productId) {
   return cart.get(productId)?.quantity || 0;
 }
 
+function isProductEnabled(product) {
+  return product && product.enabled !== false && product.enabled !== 0 && product.enabled !== '0';
+}
+
 function productButtonQuantityBadge(quantity) {
   if (quantity <= 0) return '';
   return `<span class="cart-quantity-badge" aria-label="Quantità nel carrello: ${quantity}">${quantity}</span>`;
@@ -208,17 +212,23 @@ function updateProductButtonsFromCart() {
   });
 }
 
+function getEnabledProducts(productList = getFilteredProducts()) {
+  return productList.filter(isProductEnabled);
+}
+
 function getKeyboardSelectedProduct(filteredProducts = getFilteredProducts()) {
-  if (filteredProducts.length === 0) return null;
-  return filteredProducts.find(product => product.id === keyboardSelectedProductId) || filteredProducts[0];
+  const enabledProducts = getEnabledProducts(filteredProducts);
+  if (enabledProducts.length === 0) return null;
+  return enabledProducts.find(product => product.id === keyboardSelectedProductId) || enabledProducts[0];
 }
 
 function syncKeyboardSelection(filteredProducts = getFilteredProducts()) {
-  if (!keyboardModeEnabled || filteredProducts.length === 0) {
+  if (!keyboardModeEnabled) {
     keyboardSelectedProductId = null;
     return;
   }
-  keyboardSelectedProductId = getKeyboardSelectedProduct(filteredProducts).id;
+  const selectedProduct = getKeyboardSelectedProduct(filteredProducts);
+  keyboardSelectedProductId = selectedProduct ? selectedProduct.id : null;
 }
 
 function renderProducts() {
@@ -231,11 +241,14 @@ function renderProducts() {
     const imagePath = product.image_path || `/static/img/products/${product.slug}.png`;
     const fallback = escapeHtml(product.acronym || displayName.slice(0, 2).toUpperCase());
     const quantity = getCartQuantity(product.id);
+    const enabled = isProductEnabled(product);
     const inCartClass = quantity > 0 ? ' in-cart' : '';
     const lastUpdatedClass = product.id === lastUpdatedProductId ? ' last-updated' : '';
     const keyboardSelectedClass = product.id === keyboardSelectedProductId ? ' keyboard-selected' : '';
+    const disabledClass = enabled ? '' : ' product-disabled';
+    const disabledAttributes = enabled ? '' : ' disabled aria-disabled="true" title="Prodotto non disponibile"';
     return `
-      <button class="product-button${inCartClass}${lastUpdatedClass}${keyboardSelectedClass}" data-product-id="${product.id}" data-category-name="${escapeHtml(product.category_name || '')}" data-cart-quantity="${quantity}">
+      <button class="product-button${inCartClass}${lastUpdatedClass}${keyboardSelectedClass}${disabledClass}" data-product-id="${product.id}" data-category-name="${escapeHtml(product.category_name || '')}" data-cart-quantity="${quantity}"${disabledAttributes}>
         <span class="product-image-wrap">
           <img class="product-image" src="${escapeHtml(imagePath)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${fallback}';">
         </span>
@@ -259,7 +272,7 @@ function clearLastUpdatedProduct() {
 
 function addProduct(productId) {
   const product = products.find(item => item.id === productId);
-  if (!product) return;
+  if (!isProductEnabled(product)) return;
   const current = cart.get(productId) ?? { product, quantity: 0 };
   current.quantity += 1;
   cart.set(productId, current);
@@ -278,7 +291,7 @@ function decrementProduct(productId) {
 
 function setProductQuantity(productId, quantity) {
   const product = products.find(item => item.id === productId);
-  if (!product) return;
+  if (!isProductEnabled(product)) return;
   const normalizedQuantity = Math.max(0, Number(quantity) || 0);
   if (normalizedQuantity <= 0) {
     cart.delete(productId);
@@ -419,7 +432,8 @@ function setCashierSearchVisible(visible) {
 }
 
 function selectFirstKeyboardProduct(filteredProducts = getFilteredProducts()) {
-  keyboardSelectedProductId = filteredProducts.length > 0 ? filteredProducts[0].id : null;
+  const firstEnabledProduct = getEnabledProducts(filteredProducts)[0];
+  keyboardSelectedProductId = firstEnabledProduct ? firstEnabledProduct.id : null;
 }
 
 function clearKeyboardSearch({ resetSelection = false } = {}) {
@@ -514,7 +528,7 @@ document.addEventListener('click', event => {
     return;
   }
 
-  const productButton = event.target.closest('[data-product-id]');
+  const productButton = event.target.closest('[data-product-id]:not(:disabled)');
   if (productButton) addProduct(Number(productButton.dataset.productId));
 
   const decrementButton = event.target.closest('[data-decrement-id]');
@@ -551,16 +565,16 @@ function getKeyboardActionProduct() {
 }
 
 function moveKeyboardSelection(direction) {
-  const filteredProducts = getFilteredProducts();
-  if (filteredProducts.length === 0) {
+  const enabledProducts = getEnabledProducts();
+  if (enabledProducts.length === 0) {
     keyboardSelectedProductId = null;
     renderProducts();
     return;
   }
 
-  const currentIndex = Math.max(0, filteredProducts.findIndex(product => product.id === keyboardSelectedProductId));
-  const nextIndex = (currentIndex + direction + filteredProducts.length) % filteredProducts.length;
-  keyboardSelectedProductId = filteredProducts[nextIndex].id;
+  const currentIndex = Math.max(0, enabledProducts.findIndex(product => product.id === keyboardSelectedProductId));
+  const nextIndex = (currentIndex + direction + enabledProducts.length) % enabledProducts.length;
+  keyboardSelectedProductId = enabledProducts[nextIndex].id;
   renderProducts();
   document.querySelector(`.product-button[data-product-id="${keyboardSelectedProductId}"]`)?.scrollIntoView({block: 'nearest'});
 }

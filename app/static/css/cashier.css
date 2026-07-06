@@ -39,6 +39,31 @@
   box-shadow: 0 0 0 4px rgba(139, 47, 32, .16);
 }
 
+.product-button.product-disabled {
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: .52;
+  background: #e8e8e8;
+  border-color: #bdbdbd;
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.product-button.product-disabled .price::after {
+  content: ' · terminato';
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.product-button.product-disabled.last-updated,
+.product-button.product-disabled.in-cart,
+.product-button.product-disabled.keyboard-selected {
+  background: #e8e8e8;
+  border-color: #bdbdbd;
+  box-shadow: none;
+  outline: 0;
+}
+
 .cashier.keyboard-mode-active .product-grid {
   scroll-margin-top: 5rem;
 }

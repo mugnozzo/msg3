@@ -51,6 +51,18 @@
   word-break: break-word;
 }
 
+.kitchen-card-disabled {
+  filter: grayscale(1);
+  opacity: .52;
+  background: #e8e8e8;
+  border-color: #bdbdbd;
+}
+
+.kitchen-card-disabled .kitchen-image-wrap {
+  background: #dcdcdc;
+  color: var(--muted);
+}
+
 .kitchen-image-wrap {
   display: grid;
   place-items: center;
@@ -81,6 +93,13 @@
 
 .kitchen-info span {
   color: var(--muted);
+}
+
+.kitchen-info em {
+  color: var(--muted);
+  font-size: .95rem;
+  font-style: normal;
+  font-weight: 800;
 }
 
 .kitchen-quantity {
@@ -116,6 +135,11 @@
 
 .delta-zero {
   background: var(--bg);
+  color: var(--muted);
+}
+
+.delta-disabled {
+  background: #d6d6d6;
   color: var(--muted);
 }
 

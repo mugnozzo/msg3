@@ -7,32 +7,71 @@ function productLabel(product) {
   return product.name_short || product.name;
 }
 
-function renderDelta(delta) {
+function isProductEnabled(product) {
+  return product && product.enabled !== false && product.enabled !== 0 && product.enabled !== '0';
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function renderDelta(delta, enabled = true) {
+  if (!enabled) return '<span class="delta delta-disabled">OFF</span>';
   if (!hasPreviousTotals || delta === 0) return '<span class="delta delta-zero">—</span>';
   const sign = delta > 0 ? '+' : '';
   return `<span class="delta ${delta > 0 ? 'delta-up' : 'delta-down'}">${sign}${delta}</span>`;
 }
 
+function mergeKitchenProducts(totalsData, adminScreens, adminProducts) {
+  const screen = adminScreens.find(item => item.slug === screenSlug);
+  if (!screen) return totalsData.products;
+
+  const productsById = new Map(adminProducts.map(product => [Number(product.id), product]));
+  const totalsById = new Map(totalsData.products.map(product => [Number(product.id), product]));
+
+  return screen.product_ids.map(productId => {
+    const id = Number(productId);
+    const product = productsById.get(id) || totalsById.get(id);
+    if (!product) return null;
+
+    const totalProduct = totalsById.get(id);
+    return {
+      ...product,
+      image_path: product.image_path || product.resolved_image_path || `/static/img/products/${product.slug}.png`,
+      quantity_total: totalProduct ? totalProduct.quantity_total : 0,
+    };
+  }).filter(Boolean);
+}
+
 function renderProducts(products) {
   const grid = document.querySelector('#kitchen-grid');
   grid.innerHTML = products.map(product => {
-    const quantity = Number(product.quantity_total || 0);
+    const enabled = isProductEnabled(product);
+    const quantity = enabled ? Number(product.quantity_total || 0) : 0;
     const previousQuantity = previousTotals.get(product.id) ?? quantity;
     const delta = quantity - previousQuantity;
     const label = productLabel(product);
-    const fallback = product.acronym || label.slice(0, 2).toUpperCase();
+    const fallback = escapeHtml(product.acronym || label.slice(0, 2).toUpperCase());
+    const imagePath = product.image_path || product.resolved_image_path || `/static/img/products/${product.slug}.png`;
+    const disabledClass = enabled ? '' : ' kitchen-card-disabled';
     return `
-      <article class="kitchen-card" data-product-id="${product.id}">
+      <article class="kitchen-card${disabledClass}" data-product-id="${product.id}" aria-disabled="${String(!enabled)}">
         <span class="kitchen-image-wrap">
-          <img class="kitchen-image" src="${product.image_path}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${fallback}';">
+          <img class="kitchen-image" src="${escapeHtml(imagePath)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${fallback}';">
         </span>
         <div class="kitchen-info">
-          <strong>${label}</strong>
-          <span>${product.name}</span>
+          <strong>${escapeHtml(label)}</strong>
+          <span>${escapeHtml(product.name)}</span>
+          ${enabled ? '' : '<em>Terminato</em>'}
         </div>
         <div class="kitchen-quantity">
           <span class="quantity">${quantity}</span>
-          ${renderDelta(delta)}
+          ${renderDelta(delta, enabled)}
         </div>
       </article>
     `;
@@ -42,12 +81,28 @@ function renderProducts(products) {
 async function loadData() {
   const status = document.querySelector('#kitchen-status');
   try {
-    const response = await fetch(`/api/kitchen-screens/${encodeURIComponent(screenSlug)}/totals`);
-    if (!response.ok) throw new Error(await response.text());
-    const data = await response.json();
-    renderProducts(data.products);
-    document.querySelector('#kitchen-total').textContent = data.total_items;
-    previousTotals = new Map(data.products.map(product => [product.id, Number(product.quantity_total || 0)]));
+    const [totalsResponse, adminScreensResponse, adminProductsResponse] = await Promise.all([
+      fetch(`/api/kitchen-screens/${encodeURIComponent(screenSlug)}/totals`),
+      fetch('/api/kitchen-screens/admin'),
+      fetch('/api/products/admin'),
+    ]);
+    if (!totalsResponse.ok) throw new Error(await totalsResponse.text());
+    const totalsData = await totalsResponse.json();
+    let products = totalsData.products;
+
+    if (adminScreensResponse.ok && adminProductsResponse.ok) {
+      const [adminScreens, adminProducts] = await Promise.all([
+        adminScreensResponse.json(),
+        adminProductsResponse.json(),
+      ]);
+      products = mergeKitchenProducts(totalsData, adminScreens, adminProducts);
+    }
+
+    renderProducts(products);
+    document.querySelector('#kitchen-total').textContent = products
+      .filter(isProductEnabled)
+      .reduce((sum, product) => sum + Number(product.quantity_total || 0), 0);
+    previousTotals = new Map(products.map(product => [product.id, isProductEnabled(product) ? Number(product.quantity_total || 0) : 0]));
     hasPreviousTotals = true;
     status.textContent = `Aggiornato: ${new Date().toLocaleTimeString('it-IT')}`;
   } catch (error) {
