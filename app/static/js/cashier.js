@@ -352,10 +352,26 @@ function updateChange() {
   document.querySelector('#change-output').textContent = money(change);
 }
 
+function isCoverProduct(product) {
+  const searchableValues = [product.slug, product.name, product.name_short, product.acronym]
+    .map(value => normalizeSearch(value));
+  return searchableValues.includes('coperto');
+}
+
+function cartHasCoverProduct() {
+  return getCartItemsInMenuOrder().some(item => isCoverProduct(item.product));
+}
+
+function confirmPrintWithoutCovers() {
+  if (cartHasCoverProduct()) return true;
+  return window.confirm('Nel carrello non ci sono coperti. Vuoi stampare comunque senza coperti?');
+}
+
 async function printOrder() {
   const button = document.querySelector('#print-order');
   const status = document.querySelector('#status');
   if (cart.size === 0) return;
+  if (!confirmPrintWithoutCovers()) return;
   button.disabled = true;
   status.textContent = 'Stampa in corso...';
   const payload = {
