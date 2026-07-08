@@ -48,6 +48,27 @@ function mergeKitchenProducts(totalsData, adminScreens, adminProducts) {
   }).filter(Boolean);
 }
 
+
+function stockStatusLabel(status) {
+  if (status === 'insufficient') return 'INSUFFICIENTE';
+  if (status === 'low') return 'IN ESAURIMENTO';
+  if (status === 'untracked') return 'Non monitorato';
+  return 'OK';
+}
+
+function renderStockItems(items = []) {
+  const target = document.querySelector('#kitchen-stock-grid');
+  if (!target) return;
+  const trackedItems = items.filter(item => item.tracked);
+  target.innerHTML = trackedItems.map(item => `
+    <article class="stock-card stock-card-${escapeHtml(item.status)}">
+      <strong>${escapeHtml(item.name)}</strong>
+      <span>${escapeHtml(item.remaining_display)} / ${escapeHtml(item.initial_quantity_display)} ${escapeHtml(item.unit_name)}</span>
+      <em>${stockStatusLabel(item.status)}</em>
+    </article>
+  `).join('') || '<p>Nessuno stock monitorato per oggi.</p>';
+}
+
 function renderProducts(products) {
   const grid = document.querySelector('#kitchen-grid');
   grid.innerHTML = products.map(product => {
@@ -99,6 +120,7 @@ async function loadData() {
     }
 
     renderProducts(products);
+    renderStockItems(totalsData.stock_items || []);
     document.querySelector('#kitchen-total').textContent = products
       .filter(isProductEnabled)
       .reduce((sum, product) => sum + Number(product.quantity_total || 0), 0);

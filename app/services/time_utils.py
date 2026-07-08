@@ -49,3 +49,8 @@ def current_rome_day_bounds_for_db() -> tuple[str, str]:
         start_local.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S"),
         end_local.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S"),
     )
+
+
+def current_rome_business_date() -> str:
+    """Return today's Europe/Rome calendar date used for daily reports and stock history."""
+    return datetime.now(APP_TIMEZONE).date().isoformat()

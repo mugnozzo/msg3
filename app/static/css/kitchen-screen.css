@@ -157,3 +157,38 @@
     display: flex;
   }
 }
+
+.kitchen-stock {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.kitchen-stock h2 {
+  margin: 0;
+}
+
+.kitchen-stock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: .75rem;
+}
+
+.stock-card {
+  padding: .85rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.stock-card strong,
+.stock-card span,
+.stock-card em {
+  display: block;
+}
+
+.stock-card strong { font-size: 1.2rem; }
+.stock-card span { font-size: 1.7rem; font-weight: 900; }
+.stock-card em { font-style: normal; font-weight: 900; }
+.stock-card-low { background: #fff1c2; border-color: #d89b00; }
+.stock-card-insufficient { background: #f8dddd; border-color: #b3261e; }

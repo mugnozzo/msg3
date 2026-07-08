@@ -405,7 +405,12 @@ async function printOrder() {
     clearLastUpdatedProduct();
     document.querySelector('#paid-input').value = '';
     renderCart();
-    status.textContent = `Ordine #${result.order_number} stampato.`;
+    const warnings = result.stock_warnings || [];
+    const warningText = warnings.map(warning => {
+      const prefix = warning.status === 'insufficient' ? 'STOCK INSUFFICIENTE' : 'STOCK IN ESAURIMENTO';
+      return `${prefix}: ${warning.name} rimasti dopo ordine ${warning.remaining_after_display} ${warning.unit_name}`;
+    }).join(' · ');
+    status.textContent = `Ordine #${result.order_number} stampato.${warningText ? ' ' + warningText : ''}`;
   } catch (error) {
     status.textContent = `Errore: ${error.message}`;
   } finally {

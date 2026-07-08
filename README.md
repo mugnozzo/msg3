@@ -418,3 +418,34 @@ Copyright (c) 2026 Alek Mugnozzo
 # Acknowledgements
 
 Built for real-world festival operations where speed, reliability and simplicity matter more than feature count.
+
+---
+
+# Stock Items and Nightly Quantities
+
+MSG3 can track ingredient-style stock shared by multiple products.
+
+Example usage:
+
+* `Salsiccia alla brace` consumes 2 sausage rings.
+* `Grigliata mista` consumes 1 sausage ring, 0.5 pork steak and 0.75 rosticciana portion.
+
+Stock quantities are optional per evening. If an item has no initial quantity for the selected date, it is treated as untracked and no warning is produced.
+
+Tracked stock is managed from:
+
+```text
+/settings/stock
+```
+
+The page stores one row per stock item and business date, preserving historical nightly settings in `stock_day_settings`.
+
+Order creation returns stock warnings when an order would bring a tracked item below its warning threshold or below zero. Products are not automatically disabled: operators can still disable products manually from the product settings page.
+
+For existing production databases, run the migration once after deploying the patch:
+
+```bash
+python scripts/migrate_015_stock_items.py
+```
+
+Then open `/settings/stock` and set the quantities for the current evening.

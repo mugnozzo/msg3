@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from app.db.database import get_connection
 from app.services.print_service import create_and_process_print_job
+from app.services.stock_service import get_order_stock_warnings
 
 
 def create_order(items: list[dict], cashier_id: int = 1, menu_slug: str = "main", print_now: bool = True) -> dict:
@@ -61,6 +62,8 @@ def create_order(items: list[dict], cashier_id: int = 1, menu_slug: str = "main"
             total_cents += line_total
             normalized_items.append((product_id, product["name"], product["price_cents"], quantity, line_total))
 
+        stock_warnings = get_order_stock_warnings(conn, quantities_by_product_id)
+
         next_number = conn.execute("SELECT COALESCE(MAX(order_number), 0) + 1 FROM orders").fetchone()[0]
         cur = conn.execute(
             "INSERT INTO orders(order_number, cashier_id, menu_id, total_cents) VALUES (?, ?, ?, ?)",
@@ -81,4 +84,4 @@ def create_order(items: list[dict], cashier_id: int = 1, menu_slug: str = "main"
     if print_now:
         print_job_id = create_and_process_print_job(int(order_id), int(printer_id))
 
-    return {"id": order_id, "order_number": next_number, "total_cents": total_cents, "print_job_id": print_job_id}
+    return {"id": order_id, "order_number": next_number, "total_cents": total_cents, "print_job_id": print_job_id, "stock_warnings": stock_warnings}
