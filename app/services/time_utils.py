@@ -40,15 +40,20 @@ def format_rome_datetime(value: str | datetime | None) -> str:
     return local_dt.strftime(RECEIPT_DATETIME_FORMAT)
 
 
-def current_rome_day_bounds_for_db() -> tuple[str, str]:
-    """Return UTC SQLite datetime bounds for today's Europe/Rome calendar day."""
-    today = datetime.now(APP_TIMEZONE).date()
-    start_local = datetime.combine(today, time.min, tzinfo=APP_TIMEZONE)
+def rome_day_bounds_for_db(business_date: str) -> tuple[str, str]:
+    """Return UTC SQLite datetime bounds for a Europe/Rome calendar date."""
+    day = datetime.fromisoformat(business_date).date()
+    start_local = datetime.combine(day, time.min, tzinfo=APP_TIMEZONE)
     end_local = start_local + timedelta(days=1)
     return (
         start_local.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S"),
         end_local.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S"),
     )
+
+
+def current_rome_day_bounds_for_db() -> tuple[str, str]:
+    """Return UTC SQLite datetime bounds for today's Europe/Rome calendar day."""
+    return rome_day_bounds_for_db(current_rome_business_date())
 
 
 def current_rome_business_date() -> str:

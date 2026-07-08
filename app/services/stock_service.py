@@ -4,7 +4,7 @@ import sqlite3
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Any
 
-from app.services.time_utils import current_rome_business_date, current_rome_day_bounds_for_db
+from app.services.time_utils import current_rome_business_date, rome_day_bounds_for_db
 
 SCALE = 1000
 
@@ -31,12 +31,12 @@ def format_quantity_milli(value: int | None) -> str:
 
 def get_stock_status(conn: sqlite3.Connection, business_date: str | None = None) -> list[dict[str, Any]]:
     business_date = business_date or current_rome_business_date()
-    day_start, day_end = current_rome_day_bounds_for_db()
+    day_start, day_end = rome_day_bounds_for_db(business_date)
     usage_rows = conn.execute(
         """
         SELECT
           si.id AS stock_item_id,
-          COALESCE(SUM(oi.quantity * psu.quantity_milli), 0) AS consumed_milli
+          COALESCE(SUM(CASE WHEN o.id IS NULL THEN 0 ELSE oi.quantity * psu.quantity_milli END), 0) AS consumed_milli
         FROM stock_items si
         LEFT JOIN product_stock_usages psu ON psu.stock_item_id = si.id
         LEFT JOIN order_items oi ON oi.product_id = psu.product_id
