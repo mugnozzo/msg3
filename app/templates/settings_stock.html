@@ -5,29 +5,95 @@
 <section class="settings-stock">
   <div class="settings-header">
     <div>
-      <h1>Stock serata</h1>
-      <p class="page-subtitle">Imposta solo gli ingredienti che vuoi monitorare. Lascia vuota la quantità per non tracciarli.</p>
+      <h1>Stock</h1>
+      <p class="page-subtitle">Crea gli stock da monitorare, collega i prodotti che li consumano e imposta le quantità della singola serata.</p>
     </div>
     <label>Data
       <input id="stock-date" type="date">
     </label>
   </div>
 
-  <table class="table" id="stock-table">
-    <thead>
-      <tr>
-        <th>Ingrediente</th>
-        <th>Unità</th>
-        <th>Inizio serata</th>
-        <th>Soglia esaurimento</th>
-        <th>Consumati</th>
-        <th>Rimasti</th>
-        <th>Stato</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <section class="settings-panel">
+    <h2>Definizioni stock</h2>
+    <p class="page-subtitle">Qui crei gli ingredienti/componenti generici: ad esempio girelli salsiccia, bistecche maiale, porzioni rosticciana.</p>
+
+    <form id="stock-item-form" class="stock-item-form">
+      <h3 id="stock-form-title">Crea nuovo stock</h3>
+      <input id="stock-item-id" type="hidden">
+      <label>Slug
+        <input id="stock-slug" type="text" placeholder="es. girelli_salsiccia" required>
+      </label>
+      <label>Nome
+        <input id="stock-name" type="text" placeholder="es. Girelli salsiccia" required>
+      </label>
+      <label>Unità
+        <input id="stock-unit-name" type="text" placeholder="es. girelli">
+      </label>
+      <label>Ordine
+        <input id="stock-sort-order" type="number" value="0">
+      </label>
+      <label class="checkbox-label">
+        <input id="stock-enabled" type="checkbox" checked>
+        Attivo
+      </label>
+      <div class="form-actions">
+        <button type="submit">Salva definizione</button>
+        <button id="reset-stock-form" type="button">Nuovo</button>
+      </div>
+    </form>
+
+    <table class="table" id="stock-items-table">
+      <thead>
+        <tr>
+          <th>Stock</th>
+          <th>Unità</th>
+          <th>Attivo</th>
+          <th>Ordine</th>
+          <th>Prodotti collegati</th>
+          <th>Serate salvate</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="stock-usage-section" class="settings-panel" hidden>
+    <h2 id="stock-usage-title">Consumi prodotto</h2>
+    <p class="page-subtitle">Inserisci quanto stock viene consumato da 1 unità venduta del prodotto. Lascia vuoto se il prodotto non consuma quello stock.</p>
+    <table class="table" id="stock-usages-table">
+      <thead>
+        <tr>
+          <th>Prodotto</th>
+          <th>Quantità consumata per prodotto venduto</th>
+        </tr>
+      </thead>
+      <tbody id="stock-usage-rows"></tbody>
+    </table>
+    <button id="save-stock-usages" type="button">Salva consumi</button>
+  </section>
+
+  <section class="settings-panel">
+    <h2>Quantità serata</h2>
+    <p class="page-subtitle">Imposta solo gli stock che vuoi monitorare nella data selezionata. Lascia vuota la quantità iniziale per non tracciarli quella sera.</p>
+
+    <table class="table" id="stock-table">
+      <thead>
+        <tr>
+          <th>Ingrediente</th>
+          <th>Unità</th>
+          <th>Inizio serata</th>
+          <th>Soglia esaurimento</th>
+          <th>Consumati</th>
+          <th>Rimasti</th>
+          <th>Stato</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
   <p id="stock-status" class="status"></p>
 </section>
 <script src="/static/js/settings-stock.js"></script>

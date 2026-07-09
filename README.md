@@ -438,7 +438,13 @@ Tracked stock is managed from:
 /settings/stock
 ```
 
-The page stores one row per stock item and business date, preserving historical nightly settings in `stock_day_settings`.
+The page has three areas:
+
+* stock definitions: create/edit stock items such as sausage rings or pork steaks;
+* product consumption rules: choose which products consume each stock item and in what quantity;
+* nightly quantities: set the initial quantity and warning threshold for the selected date.
+
+The nightly quantity area stores one row per stock item and business date, preserving historical nightly settings in `stock_day_settings`.
 
 Order creation returns stock warnings when an order would bring a tracked item below its warning threshold or below zero. Products are not automatically disabled: operators can still disable products manually from the product settings page.
 
