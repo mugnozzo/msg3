@@ -63,7 +63,12 @@ function renderStockItems(items = []) {
   target.innerHTML = trackedItems.map(item => `
     <article class="stock-card stock-card-${escapeHtml(item.status)}">
       <strong>${escapeHtml(item.name)}</strong>
-      <span>${escapeHtml(item.remaining_display)} / ${escapeHtml(item.initial_quantity_display)} ${escapeHtml(item.unit_name)}</span>
+      <div class="stock-values" aria-label="Riepilogo stock ${escapeHtml(item.name)}">
+        <span><small>Totali</small><b>${escapeHtml(item.initial_quantity_display)}</b></span>
+        <span><small>Consumati</small><b>${escapeHtml(item.consumed_display)}</b></span>
+        <span><small>Rimasti</small><b>${escapeHtml(item.remaining_display)}</b></span>
+      </div>
+      <span class="stock-unit">${escapeHtml(item.unit_name)}</span>
       <em>${stockStatusLabel(item.status)}</em>
     </article>
   `).join('') || '<p>Nessuno stock monitorato per oggi.</p>';
