@@ -118,3 +118,30 @@ CREATE TABLE IF NOT EXISTS print_job_attempts (
   success INTEGER NOT NULL DEFAULT 0,
   error_message TEXT
 );
+
+CREATE TABLE IF NOT EXISTS stock_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  unit_name TEXT NOT NULL DEFAULT 'unità',
+  enabled INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS product_stock_usages (
+  product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  stock_item_id INTEGER NOT NULL REFERENCES stock_items(id) ON DELETE CASCADE,
+  quantity_milli INTEGER NOT NULL CHECK(quantity_milli > 0),
+  PRIMARY KEY (product_id, stock_item_id)
+);
+
+CREATE TABLE IF NOT EXISTS stock_day_settings (
+  stock_item_id INTEGER NOT NULL REFERENCES stock_items(id) ON DELETE CASCADE,
+  business_date TEXT NOT NULL,
+  initial_quantity_milli INTEGER CHECK(initial_quantity_milli IS NULL OR initial_quantity_milli >= 0),
+  warning_threshold_milli INTEGER CHECK(warning_threshold_milli IS NULL OR warning_threshold_milli >= 0),
+  notes TEXT,
+  PRIMARY KEY (stock_item_id, business_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_stock_day_settings_date ON stock_day_settings(business_date);

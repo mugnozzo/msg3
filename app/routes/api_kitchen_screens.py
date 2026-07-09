@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.db.database import get_connection, rows_to_dicts
+from app.services.stock_service import get_stock_status
 from app.services.time_utils import current_rome_day_bounds_for_db
 
 router = APIRouter(prefix="/api/kitchen-screens", tags=["kitchen-screens"])
@@ -136,6 +137,7 @@ def get_kitchen_screen_totals(slug: str) -> dict:
             "day_end": day_end,
             "products": products,
             "total_items": sum(int(product["quantity_total"]) for product in products),
+            "stock_items": get_stock_status(conn),
         }
 
 

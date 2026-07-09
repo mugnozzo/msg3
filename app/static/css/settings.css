@@ -120,3 +120,56 @@ button.danger {
   border-color: #b42318;
   color: #b42318;
 }
+
+.stock-status {
+  display: inline-block;
+  padding: .25rem .55rem;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.stock-status-ok { background: #d9f2df; color: #126c2e; }
+.stock-status-low { background: #fff1c2; color: #7a5200; }
+.stock-status-insufficient { background: #f8dddd; color: #8c1d1d; }
+.stock-status-untracked { background: #e8e8e8; color: var(--muted); }
+
+.settings-panel {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.stock-item-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+  margin: 1rem 0;
+}
+
+.stock-item-form h3 {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.checkbox-label {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.form-actions,
+.actions-cell {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+#stock-usages-table input,
+#stock-table input,
+#stock-items-table input,
+.stock-item-form input {
+  max-width: 100%;
+}

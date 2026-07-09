@@ -62,6 +62,8 @@ def seed_database(conn: sqlite3.Connection, seed: dict[str, Any]) -> None:
     cashiers = seed.get("cashiers", [])
     printers = seed.get("printers", [])
     cashier_settings = seed.get("cashier_settings", [])
+    stock_items = seed.get("stock_items", [])
+    product_stock_usages = seed.get("product_stock_usages", [])
 
     if not categories:
         raise ValueError("Seed must contain at least one category")
@@ -179,6 +181,8 @@ def seed_database(conn: sqlite3.Connection, seed: dict[str, Any]) -> None:
         for row in conn.execute("SELECT id, name FROM printers")
     }
 
+    seed_stock_items(conn, stock_items, product_stock_usages, product_ids)
+
     for setting in cashier_settings:
         cashier_name = setting["cashier"]
         printer_name = setting["printer"]
@@ -285,3 +289,47 @@ def infer_default_grill_products(product_ids: dict[str, int]) -> list[str]:
     inferred = [slug for slug in known_grill_slugs if slug in product_ids]
     if inferred:
         return inferred
+
+
+def seed_stock_items(
+    conn: sqlite3.Connection,
+    stock_items: list[dict[str, Any]],
+    product_stock_usages: list[dict[str, Any]],
+    product_ids: dict[str, int],
+) -> None:
+    if not stock_items:
+        return
+
+    for item in stock_items:
+        conn.execute(
+            """
+            INSERT INTO stock_items(slug, name, unit_name, enabled, sort_order)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                item["slug"],
+                item["name"],
+                item.get("unit_name", "unità"),
+                int(item.get("enabled", 1)),
+                int(item.get("sort_order", 0)),
+            ),
+        )
+
+    stock_ids = {
+        row["slug"]: row["id"]
+        for row in conn.execute("SELECT id, slug FROM stock_items")
+    }
+    for usage in product_stock_usages:
+        product_slug = usage["product"]
+        stock_slug = usage["stock_item"]
+        if product_slug not in product_ids:
+            raise ValueError(f"Unknown product in product_stock_usages: {product_slug}")
+        if stock_slug not in stock_ids:
+            raise ValueError(f"Unknown stock item in product_stock_usages: {stock_slug}")
+        conn.execute(
+            """
+            INSERT INTO product_stock_usages(product_id, stock_item_id, quantity_milli)
+            VALUES (?, ?, ?)
+            """,
+            (product_ids[product_slug], stock_ids[stock_slug], int(usage["quantity_milli"])),
+        )
