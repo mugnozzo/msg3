@@ -200,14 +200,14 @@
   min-width: 0;
 }
 .stock-values small {
-  font-size: .75rem;
+  font-size: 1rem;
   font-weight: 800;
   letter-spacing: .04em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .stock-values b {
-  font-size: 1.65rem;
+  font-size: 3.65rem;
   line-height: 1;
   overflow-wrap: anywhere;
 }
