@@ -49,6 +49,13 @@ function mergeKitchenProducts(totalsData, adminScreens, adminProducts) {
 }
 
 
+function formatStockQuantity(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const number = Number(value);
+  if (!Number.isFinite(number)) return String(value);
+  return number.toLocaleString('it-IT', {maximumFractionDigits: 0});
+}
+
 function stockStatusLabel(status) {
   if (status === 'insufficient') return 'INSUFFICIENTE';
   if (status === 'low') return 'IN ESAURIMENTO';
@@ -64,9 +71,9 @@ function renderStockItems(items = []) {
     <article class="stock-card stock-card-${escapeHtml(item.status)}">
       <strong>${escapeHtml(item.name)}</strong>
       <div class="stock-values" aria-label="Riepilogo stock ${escapeHtml(item.name)}">
-        <span><small>Totali</small><b>${escapeHtml(item.initial_quantity_display)}</b></span>
-        <span><small>Consumati</small><b>${escapeHtml(item.consumed_display)}</b></span>
-        <span><small>Rimasti</small><b>${escapeHtml(item.remaining_display)}</b></span>
+        <span><small>Totali</small><b>${escapeHtml(formatStockQuantity(item.initial_quantity))}</b></span>
+        <span><small>Consumati</small><b>${escapeHtml(formatStockQuantity(item.consumed))}</b></span>
+        <span><small>Rimasti</small><b>${escapeHtml(formatStockQuantity(item.remaining))}</b></span>
       </div>
       <span class="stock-unit">${escapeHtml(item.unit_name)}</span>
       <em>${stockStatusLabel(item.status)}</em>
