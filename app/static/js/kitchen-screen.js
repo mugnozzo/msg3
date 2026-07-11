@@ -71,9 +71,9 @@ function renderStockItems(items = []) {
     <article class="stock-card stock-card-${escapeHtml(item.status)}">
       <strong>${escapeHtml(item.name)}</strong>
       <div class="stock-values" aria-label="Riepilogo stock ${escapeHtml(item.name)}">
-        <span><small>Totali</small><b>${escapeHtml(formatStockQuantity(item.initial_quantity))}</b></span>
+        <!--<span><small>Totali</small><b>${escapeHtml(formatStockQuantity(item.initial_quantity))}</b></span>-->
         <span><small>Consumati</small><b>${escapeHtml(formatStockQuantity(item.consumed))}</b></span>
-        <span><small>Rimasti</small><b>${escapeHtml(formatStockQuantity(item.remaining))}</b></span>
+        <!--<span><small>Rimasti</small><b>${escapeHtml(formatStockQuantity(item.remaining))}</b></span>-->
       </div>
       <span class="stock-unit">${escapeHtml(item.unit_name)}</span>
       <em>${stockStatusLabel(item.status)}</em>

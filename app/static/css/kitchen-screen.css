@@ -189,7 +189,7 @@
 .stock-card strong { font-size: 1.2rem; }
 .stock-values {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(1, minmax(0, 1fr));
   gap: .5rem;
   margin: .75rem 0 .35rem;
 }
