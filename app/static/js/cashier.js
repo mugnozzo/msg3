@@ -8,6 +8,8 @@ let keyboardModeEnabled = false;
 let keyboardSelectedProductId = null;
 let lastUpdatedProductId = null;
 const displayOptions = { name: true, icon: true, price: true };
+let missingCoversPopupResolver = null;
+let emptyCartPopupResolver = null;
 
 const money = cents => `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
 
@@ -375,22 +377,97 @@ function cartHasCoverProduct() {
   return getCartItemsInMenuOrder().some(item => isCoverProduct(item.product));
 }
 
-function confirmPrintWithoutCovers() {
-  if (cartHasCoverProduct()) return true;
-  return window.confirm('Nel carrello non ci sono coperti. Vuoi stampare comunque senza coperti?');
+function isBarCashier() {
+  return normalizeSearch(menu) === 'bar';
 }
 
-async function printOrder() {
-  const button = document.querySelector('#print-order');
+function closeMissingCoversPopup(confirmed) {
+  const popup = document.querySelector('#missing-covers-popup');
+  if (!popup || popup.hidden) return;
+
+  popup.hidden = true;
+  document.body.classList.remove('msg-popup-open');
+
+  const resolve = missingCoversPopupResolver;
+  missingCoversPopupResolver = null;
+  if (resolve) resolve(confirmed);
+}
+
+function showMissingCoversPopup({ printNow = true } = {}) {
+  const popup = document.querySelector('#missing-covers-popup');
+  if (!popup) return Promise.resolve(false);
+
+  if (missingCoversPopupResolver) return Promise.resolve(false);
+
+  const description = popup.querySelector('#missing-covers-description');
+  const confirmButton = popup.querySelector('[data-missing-covers-confirm]');
+  if (description) {
+    description.textContent = printNow
+      ? 'Nel carrello non ci sono coperti. Vuoi stampare comunque senza coperti?'
+      : 'Nel carrello non ci sono coperti. Vuoi registrare comunque l’ordine senza coperti?';
+  }
+  if (confirmButton) {
+    confirmButton.textContent = printNow ? 'Stampa comunque' : 'Ordina comunque';
+  }
+
+  popup.hidden = false;
+  document.body.classList.add('msg-popup-open');
+  confirmButton?.focus();
+
+  return new Promise(resolve => {
+    missingCoversPopupResolver = resolve;
+  });
+}
+
+async function confirmOrderWithoutCovers({ printNow = true } = {}) {
+  if (isBarCashier() || cartHasCoverProduct()) return true;
+  return showMissingCoversPopup({ printNow });
+}
+
+function closeEmptyCartPopup() {
+  const popup = document.querySelector('#empty-cart-popup');
+  if (!popup || popup.hidden) return;
+
+  popup.hidden = true;
+  document.body.classList.remove('msg-popup-open');
+
+  const resolve = emptyCartPopupResolver;
+  emptyCartPopupResolver = null;
+  if (resolve) resolve();
+}
+
+function showEmptyCartPopup() {
+  const popup = document.querySelector('#empty-cart-popup');
+  if (!popup) return Promise.resolve();
+
+  if (emptyCartPopupResolver) return Promise.resolve();
+
+  popup.hidden = false;
+  document.body.classList.add('msg-popup-open');
+  popup.querySelector('[data-empty-cart-close]')?.focus();
+
+  return new Promise(resolve => {
+    emptyCartPopupResolver = resolve;
+  });
+}
+
+async function submitOrder({ printNow = true } = {}) {
+  const printButton = document.querySelector('#print-order');
+  const noPrintButton = document.querySelector('#order-without-print');
   const status = document.querySelector('#status');
-  if (cart.size === 0) return;
-  if (!confirmPrintWithoutCovers()) return;
-  button.disabled = true;
-  status.textContent = 'Stampa in corso...';
+  if (cart.size === 0) {
+    await showEmptyCartPopup();
+    return;
+  }
+  if (!await confirmOrderWithoutCovers({ printNow })) return;
+
+  printButton.disabled = true;
+  noPrintButton.disabled = true;
+  status.textContent = printNow ? 'Stampa in corso...' : 'Ordine in corso...';
   const payload = {
     menu,
     cashier_id: cashierId,
-    print_now: true,
+    print_now: printNow,
     items: getCartItemsInMenuOrder().map(item => ({product_id: item.product.id, quantity: item.quantity}))
   };
   try {
@@ -410,14 +487,36 @@ async function printOrder() {
       const prefix = warning.status === 'insufficient' ? 'STOCK INSUFFICIENTE' : 'STOCK IN ESAURIMENTO';
       return `${prefix}: ${warning.name} rimasti dopo ordine ${warning.remaining_after_display} ${warning.unit_name}`;
     }).join(' · ');
-    status.textContent = `Ordine #${result.order_number} stampato.${warningText ? ' ' + warningText : ''}`;
+    const completionText = printNow ? 'stampato' : 'registrato senza stampa';
+    status.textContent = `Ordine #${result.order_number} ${completionText}.${warningText ? ' ' + warningText : ''}`;
   } catch (error) {
     status.textContent = `Errore: ${error.message}`;
   } finally {
-    button.disabled = false;
+    printButton.disabled = false;
+    noPrintButton.disabled = document.querySelector('#cashier-tools-panel')?.hidden ?? true;
   }
 }
 
+function printOrder() {
+  return submitOrder({ printNow: true });
+}
+
+function orderWithoutPrint() {
+  return submitOrder({ printNow: false });
+}
+
+function clearOrder() {
+  cart.clear();
+  clearLastUpdatedProduct();
+  renderCart();
+}
+
+function syncAdvancedOrderButton(toolsVisible) {
+  const button = document.querySelector('#order-without-print');
+  if (!button) return;
+  button.hidden = !toolsVisible;
+  button.disabled = !toolsVisible;
+}
 
 function toggleCashierPanel(toggleButton, panel) {
   if (!toggleButton || !panel) return;
@@ -425,6 +524,7 @@ function toggleCashierPanel(toggleButton, panel) {
   panel.hidden = isOpen;
   toggleButton.classList.toggle('active', !isOpen);
   toggleButton.setAttribute('aria-expanded', String(!isOpen));
+  if (panel.id === 'cashier-tools-panel') syncAdvancedOrderButton(!isOpen);
 }
 
 function setCashierSearchVisible(visible) {
@@ -490,6 +590,21 @@ function handleCashierToolbarToggle(event) {
 }
 
 document.addEventListener('click', event => {
+  if (event.target.closest('[data-empty-cart-close]')) {
+    closeEmptyCartPopup();
+    return;
+  }
+
+  if (event.target.closest('[data-missing-covers-confirm]')) {
+    closeMissingCoversPopup(true);
+    return;
+  }
+
+  if (event.target.closest('[data-missing-covers-cancel]')) {
+    closeMissingCoversPopup(false);
+    return;
+  }
+
   if (handleCashierToolbarToggle(event)) return;
 
   const categoryToggleAllButton = event.target.closest('#toggle-all-categories');
@@ -585,6 +700,24 @@ function moveKeyboardSelection(direction) {
 }
 
 function handleKeyboardModeKeydown(event) {
+  const emptyCartPopup = document.querySelector('#empty-cart-popup');
+  if (emptyCartPopup && !emptyCartPopup.hidden) {
+    if (event.key === 'Escape' || event.key === 'Enter') {
+      event.preventDefault();
+      closeEmptyCartPopup();
+    }
+    return;
+  }
+
+  const missingCoversPopup = document.querySelector('#missing-covers-popup');
+  if (missingCoversPopup && !missingCoversPopup.hidden) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMissingCoversPopup(false);
+    }
+    return;
+  }
+
   if (!keyboardModeEnabled || isTypingInEditableField(event)) return;
 
   const searchInput = document.querySelector('#product-search');
@@ -594,6 +727,27 @@ function handleKeyboardModeKeydown(event) {
     event.preventDefault();
     clearKeyboardSearch({ resetSelection: true });
     printOrder();
+    return;
+  }
+
+  if (event.ctrlKey && key.toLowerCase() === 'o') {
+    event.preventDefault();
+    clearKeyboardSearch({ resetSelection: true });
+    orderWithoutPrint();
+    return;
+  }
+
+  if (event.ctrlKey && key.toLowerCase() === 'x') {
+    event.preventDefault();
+    clearOrder();
+    return;
+  }
+
+  if (event.ctrlKey && /^[0-9]$/.test(key) && !event.altKey && !event.metaKey) {
+    event.preventDefault();
+    const product = getKeyboardActionProduct();
+    if (product) setProductQuantity(product.id, 10 + Number(key));
+    clearKeyboardSearch();
     return;
   }
 
@@ -663,11 +817,8 @@ document.addEventListener('keydown', handleKeyboardModeKeydown);
 
 document.querySelector('#paid-input').addEventListener('input', updateChange);
 document.querySelector('#print-order').addEventListener('click', printOrder);
-document.querySelector('#clear-order').addEventListener('click', () => {
-  cart.clear();
-  clearLastUpdatedProduct();
-  renderCart();
-});
+document.querySelector('#order-without-print').addEventListener('click', orderWithoutPrint);
+document.querySelector('#clear-order').addEventListener('click', clearOrder);
 setupCashierFrontendControls();
 
 loadProducts().then(renderCart);
