@@ -9,6 +9,7 @@ let keyboardSelectedProductId = null;
 let lastUpdatedProductId = null;
 const displayOptions = { name: true, icon: true, price: true };
 let missingCoversPopupResolver = null;
+let emptyCartPopupResolver = null;
 
 const money = cents => `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
 
@@ -412,10 +413,40 @@ async function confirmPrintWithoutCovers() {
   return showMissingCoversPopup();
 }
 
+function closeEmptyCartPopup() {
+  const popup = document.querySelector('#empty-cart-popup');
+  if (!popup || popup.hidden) return;
+
+  popup.hidden = true;
+  document.body.classList.remove('msg-popup-open');
+
+  const resolve = emptyCartPopupResolver;
+  emptyCartPopupResolver = null;
+  if (resolve) resolve();
+}
+
+function showEmptyCartPopup() {
+  const popup = document.querySelector('#empty-cart-popup');
+  if (!popup) return Promise.resolve();
+
+  if (emptyCartPopupResolver) return Promise.resolve();
+
+  popup.hidden = false;
+  document.body.classList.add('msg-popup-open');
+  popup.querySelector('[data-empty-cart-close]')?.focus();
+
+  return new Promise(resolve => {
+    emptyCartPopupResolver = resolve;
+  });
+}
+
 async function printOrder() {
   const button = document.querySelector('#print-order');
   const status = document.querySelector('#status');
-  if (cart.size === 0) return;
+  if (cart.size === 0) {
+    await showEmptyCartPopup();
+    return;
+  }
   if (!await confirmPrintWithoutCovers()) return;
   button.disabled = true;
   status.textContent = 'Stampa in corso...';
@@ -522,6 +553,11 @@ function handleCashierToolbarToggle(event) {
 }
 
 document.addEventListener('click', event => {
+  if (event.target.closest('[data-empty-cart-close]')) {
+    closeEmptyCartPopup();
+    return;
+  }
+
   if (event.target.closest('[data-missing-covers-confirm]')) {
     closeMissingCoversPopup(true);
     return;
@@ -627,6 +663,15 @@ function moveKeyboardSelection(direction) {
 }
 
 function handleKeyboardModeKeydown(event) {
+  const emptyCartPopup = document.querySelector('#empty-cart-popup');
+  if (emptyCartPopup && !emptyCartPopup.hidden) {
+    if (event.key === 'Escape' || event.key === 'Enter') {
+      event.preventDefault();
+      closeEmptyCartPopup();
+    }
+    return;
+  }
+
   const missingCoversPopup = document.querySelector('#missing-covers-popup');
   if (missingCoversPopup && !missingCoversPopup.hidden) {
     if (event.key === 'Escape') {
