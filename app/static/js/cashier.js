@@ -505,6 +505,11 @@ function orderWithoutPrint() {
   return submitOrder({ printNow: false });
 }
 
+function clearOrder() {
+  cart.clear();
+  clearLastUpdatedProduct();
+  renderCart();
+}
 
 function syncAdvancedOrderButton(toolsVisible) {
   const button = document.querySelector('#order-without-print');
@@ -725,6 +730,19 @@ function handleKeyboardModeKeydown(event) {
     return;
   }
 
+  if (event.ctrlKey && key.toLowerCase() === 'o') {
+    event.preventDefault();
+    clearKeyboardSearch({ resetSelection: true });
+    orderWithoutPrint();
+    return;
+  }
+
+  if (event.ctrlKey && key.toLowerCase() === 'x') {
+    event.preventDefault();
+    clearOrder();
+    return;
+  }
+
   if (key === ' ') {
     event.preventDefault();
     clearKeyboardSearch({ resetSelection: true });
@@ -792,11 +810,7 @@ document.addEventListener('keydown', handleKeyboardModeKeydown);
 document.querySelector('#paid-input').addEventListener('input', updateChange);
 document.querySelector('#print-order').addEventListener('click', printOrder);
 document.querySelector('#order-without-print').addEventListener('click', orderWithoutPrint);
-document.querySelector('#clear-order').addEventListener('click', () => {
-  cart.clear();
-  clearLastUpdatedProduct();
-  renderCart();
-});
+document.querySelector('#clear-order').addEventListener('click', clearOrder);
 setupCashierFrontendControls();
 
 loadProducts().then(renderCart);
