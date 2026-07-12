@@ -64,7 +64,10 @@
       <div>Resto: <strong id="change-output">€ 0,00</strong></div>
     </section>
 
-    <button id="print-order" class="primary">Stampa ordine</button>
+    <div class="order-actions">
+      <button id="print-order" class="primary">Stampa ordine</button>
+      <button id="order-without-print" type="button" hidden disabled>Ordina senza stampare</button>
+    </div>
     <button id="clear-order">Svuota</button>
     <p id="status" class="status"></p>
   </aside>
@@ -74,7 +77,7 @@
   <div class="msg-popup-backdrop" data-empty-cart-close></div>
   <section class="msg-popup-panel" tabindex="-1">
     <h2 id="empty-cart-title">Carrello vuoto</h2>
-    <p id="empty-cart-description">Il carrello è vuoto. Aggiungi almeno un prodotto prima di stampare l’ordine.</p>
+    <p id="empty-cart-description">Il carrello è vuoto. Aggiungi almeno un prodotto prima di effettuare l’ordine.</p>
     <div class="msg-popup-actions">
       <button type="button" class="primary" data-empty-cart-close>OK</button>
     </div>
