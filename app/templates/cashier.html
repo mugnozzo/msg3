@@ -69,5 +69,18 @@
     <p id="status" class="status"></p>
   </aside>
 </section>
+
+<div id="missing-covers-popup" class="msg-popup" role="dialog" aria-modal="true" aria-labelledby="missing-covers-title" aria-describedby="missing-covers-description" hidden>
+  <div class="msg-popup-backdrop" data-missing-covers-cancel></div>
+  <section class="msg-popup-panel" tabindex="-1">
+    <h2 id="missing-covers-title">Nessun coperto nell’ordine</h2>
+    <p id="missing-covers-description">Nel carrello non ci sono coperti. Vuoi stampare comunque senza coperti?</p>
+    <div class="msg-popup-actions">
+      <button type="button" data-missing-covers-cancel>Annulla</button>
+      <button type="button" class="primary" data-missing-covers-confirm>Stampa comunque</button>
+    </div>
+  </section>
+</div>
+
 <script src="/static/js/cashier.js"></script>
 {% endblock %}

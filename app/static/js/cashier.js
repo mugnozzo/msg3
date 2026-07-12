@@ -8,6 +8,7 @@ let keyboardModeEnabled = false;
 let keyboardSelectedProductId = null;
 let lastUpdatedProductId = null;
 const displayOptions = { name: true, icon: true, price: true };
+let missingCoversPopupResolver = null;
 
 const money = cents => `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
 
@@ -375,16 +376,47 @@ function cartHasCoverProduct() {
   return getCartItemsInMenuOrder().some(item => isCoverProduct(item.product));
 }
 
-function confirmPrintWithoutCovers() {
-  if (cartHasCoverProduct()) return true;
-  return window.confirm('Nel carrello non ci sono coperti. Vuoi stampare comunque senza coperti?');
+function isBarCashier() {
+  return normalizeSearch(menu) === 'bar';
+}
+
+function closeMissingCoversPopup(confirmed) {
+  const popup = document.querySelector('#missing-covers-popup');
+  if (!popup || popup.hidden) return;
+
+  popup.hidden = true;
+  document.body.classList.remove('msg-popup-open');
+
+  const resolve = missingCoversPopupResolver;
+  missingCoversPopupResolver = null;
+  if (resolve) resolve(confirmed);
+}
+
+function showMissingCoversPopup() {
+  const popup = document.querySelector('#missing-covers-popup');
+  if (!popup) return Promise.resolve(false);
+
+  if (missingCoversPopupResolver) return Promise.resolve(false);
+
+  popup.hidden = false;
+  document.body.classList.add('msg-popup-open');
+  popup.querySelector('[data-missing-covers-confirm]')?.focus();
+
+  return new Promise(resolve => {
+    missingCoversPopupResolver = resolve;
+  });
+}
+
+async function confirmPrintWithoutCovers() {
+  if (isBarCashier() || cartHasCoverProduct()) return true;
+  return showMissingCoversPopup();
 }
 
 async function printOrder() {
   const button = document.querySelector('#print-order');
   const status = document.querySelector('#status');
   if (cart.size === 0) return;
-  if (!confirmPrintWithoutCovers()) return;
+  if (!await confirmPrintWithoutCovers()) return;
   button.disabled = true;
   status.textContent = 'Stampa in corso...';
   const payload = {
@@ -490,6 +522,16 @@ function handleCashierToolbarToggle(event) {
 }
 
 document.addEventListener('click', event => {
+  if (event.target.closest('[data-missing-covers-confirm]')) {
+    closeMissingCoversPopup(true);
+    return;
+  }
+
+  if (event.target.closest('[data-missing-covers-cancel]')) {
+    closeMissingCoversPopup(false);
+    return;
+  }
+
   if (handleCashierToolbarToggle(event)) return;
 
   const categoryToggleAllButton = event.target.closest('#toggle-all-categories');
@@ -585,6 +627,15 @@ function moveKeyboardSelection(direction) {
 }
 
 function handleKeyboardModeKeydown(event) {
+  const missingCoversPopup = document.querySelector('#missing-covers-popup');
+  if (missingCoversPopup && !missingCoversPopup.hidden) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMissingCoversPopup(false);
+    }
+    return;
+  }
+
   if (!keyboardModeEnabled || isTypingInEditableField(event)) return;
 
   const searchInput = document.querySelector('#product-search');
