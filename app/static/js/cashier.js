@@ -743,6 +743,14 @@ function handleKeyboardModeKeydown(event) {
     return;
   }
 
+  if (event.ctrlKey && /^[0-9]$/.test(key) && !event.altKey && !event.metaKey) {
+    event.preventDefault();
+    const product = getKeyboardActionProduct();
+    if (product) setProductQuantity(product.id, 10 + Number(key));
+    clearKeyboardSearch();
+    return;
+  }
+
   if (key === ' ') {
     event.preventDefault();
     clearKeyboardSearch({ resetSelection: true });
