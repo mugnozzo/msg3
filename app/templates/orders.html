@@ -88,7 +88,7 @@ document.addEventListener('click', async event => {
     showOrderDetail(event.target.dataset.viewId);
     return;
   }
-  if (event.target.id === 'order-detail-close') {
+  if (event.target.id === 'order-detail-close' || event.target.id === 'order-detail') {
     document.querySelector('#order-detail').close();
     return;
   }
