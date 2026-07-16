@@ -54,12 +54,23 @@ def list_orders(limit: int = 50) -> list[dict]:
 @router.get("/{order_id}")
 def get_order(order_id: int) -> dict:
     with get_connection() as conn:
-        order = conn.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+        order = conn.execute(
+            """
+            SELECT o.*, c.name AS cashier_name, m.name AS menu_name
+            FROM orders o
+            LEFT JOIN cashiers c ON c.id = o.cashier_id
+            LEFT JOIN menus m ON m.id = o.menu_id
+            WHERE o.id = ?
+            """,
+            (order_id,),
+        ).fetchone()
         if order is None:
             raise HTTPException(status_code=404, detail="Order not found")
+        order_dict = dict(order)
+        order_dict["created_at_display"] = format_rome_datetime(order_dict.get("created_at"))
         items = rows_to_dicts(conn.execute("SELECT * FROM order_items WHERE order_id = ? ORDER BY id", (order_id,)))
         jobs = rows_to_dicts(conn.execute("SELECT * FROM print_jobs WHERE order_id = ? ORDER BY id DESC", (order_id,)))
-        return {"order": dict(order), "items": items, "print_jobs": jobs}
+        return {"order": order_dict, "items": items, "print_jobs": jobs}
 
 
 @router.post("/{order_id}/reprint")

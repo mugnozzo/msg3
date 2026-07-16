@@ -8,8 +8,20 @@
   </thead>
   <tbody></tbody>
 </table>
+<dialog id="order-detail">
+  <button id="order-detail-close" type="button" aria-label="Chiudi">✕</button>
+  <div id="order-detail-body"></div>
+</dialog>
 <script>
 const money = cents => `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
 async function loadOrders() {
   const res = await fetch('/api/orders');
   const orders = await res.json();
@@ -19,11 +31,54 @@ async function loadOrders() {
       <td>${o.created_at_display ?? o.created_at}</td>
       <td>${o.cashier_name ?? ''}</td>
       <td>${money(o.total_cents)}</td>
-      <td><button data-id="${o.id}">Ristampa</button></td>
+      <td>
+        <button data-id="${o.id}">Ristampa</button>
+        <button data-view-id="${o.id}">Visualizza</button>
+      </td>
     </tr>
   `).join('');
 }
+async function showOrderDetail(id) {
+  const res = await fetch(`/api/orders/${id}`);
+  if (!res.ok) {
+    alert(await res.text());
+    return;
+  }
+  const { order, items } = await res.json();
+  const rows = items.map(item => `
+    <tr>
+      <td>${escapeHtml(item.name_snapshot)}</td>
+      <td>${item.quantity}</td>
+      <td>${money(item.price_cents_snapshot)}</td>
+      <td>${money(item.line_total_cents)}</td>
+    </tr>
+  `).join('');
+  document.querySelector('#order-detail-body').innerHTML = `
+    <h2>Ordine #${order.order_number}</h2>
+    <p class="page-subtitle">
+      ${escapeHtml(order.created_at_display ?? order.created_at)}
+      &middot; ${escapeHtml(order.cashier_name ?? '')}
+      &middot; ${escapeHtml(order.status)}
+    </p>
+    <table class="table">
+      <thead>
+        <tr><th>Prodotto</th><th>Qtà</th><th>Prezzo</th><th>Totale</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="page-subtitle"><strong>Totale ordine: ${money(order.total_cents)}</strong></p>
+  `;
+  document.querySelector('#order-detail').showModal();
+}
 document.addEventListener('click', async event => {
+  if (event.target.matches('button[data-view-id]')) {
+    showOrderDetail(event.target.dataset.viewId);
+    return;
+  }
+  if (event.target.id === 'order-detail-close') {
+    document.querySelector('#order-detail').close();
+    return;
+  }
   if (!event.target.matches('button[data-id]')) return;
   const id = event.target.dataset.id;
   event.target.disabled = true;
