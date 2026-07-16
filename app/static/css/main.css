@@ -134,6 +134,15 @@ button:disabled { opacity: .6; cursor: wait; }
 
 .status { color: var(--muted); min-height: 1.5em; }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: 1rem;
+}
+
+.pagination button:disabled { cursor: not-allowed; }
+
 dialog {
   border: 1px solid var(--border);
   border-radius: var(--radius);
